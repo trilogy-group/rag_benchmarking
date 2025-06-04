@@ -9,7 +9,8 @@ load_dotenv()
 
 
 def main():
-    experiment = get_experiment_config("frame-3-large-gpt-4o")
+    # experiment = get_experiment_config("frame-3-large-gpt-4o")
+    experiment = get_experiment_config("ragtruth-3-large-gpt-4o")
     index_name = experiment.index_name
     agent_name = experiment.agent_name
     datastore = experiment.datastore(index_name=index_name, agent_name=agent_name, text_embedding_model=experiment.text_embedding_model, openai_model=experiment.openai_model)

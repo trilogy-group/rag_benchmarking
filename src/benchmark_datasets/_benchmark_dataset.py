@@ -1,5 +1,6 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from pydantic import BaseModel
+
 
 
 
@@ -28,11 +29,14 @@ class BenchmarkDataset:
         """
         raise NotImplementedError
 
-    def get_corpus(self) -> List[str]:
-        """
-        Returns the entire document corpus.
-        """
-        raise NotImplementedError
+    def get_corpus(self) -> Dict[str, Dict[str, str]]:
+        return self.corpus
+
+    def get_queries(self) -> Dict[str, str]:
+        return self.queries
+
+    def get_relevant_docs(self) -> Dict[str, list]:
+        return self.relevant_docs
 
     def name(self) -> str:
         """
