@@ -293,10 +293,8 @@ description = "A Heterogeneous Benchmark for Information Retrieval"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-files = [
-    {file = "beir-2.1.0-py3-none-any.whl", hash = "sha256:ea369b7a1c484b8f2628e11435d2887c75d1f9c4f70d672fa88fdd048adcb9e5"},
-    {file = "beir-2.1.0.tar.gz", hash = "sha256:a2f8c6276ca631b08ff44d2d452179de8d783bb6ca9258b50c4588d0e6123a23"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 datasets = "*"
@@ -310,6 +308,12 @@ faiss = ["faiss-cpu"]
 llm2vec = ["llm2vec"]
 peft = ["peft"]
 tf = ["tensorflow (>=2.2.0)", "tensorflow-hub", "tensorflow-text"]
+
+[package.source]
+type = "git"
+url = "https://github.com/beir-cellar/beir.git"
+reference = "HEAD"
+resolved_reference = "3e2d56d160347ba46aba1e8f610facb56b170613"
 
 [[package]]
 name = "certifi"
@@ -3940,4 +3944,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "67bd317d65911b212731f3e1050e76705e8398fc6255d1a4a23921fd09a727f0"
+content-hash = "03351b94924fe625734f74dfa137ebf05a3668b27687e610b9c95c71ff273a3a"
