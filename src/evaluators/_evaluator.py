@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 from retrievers._retriever import Retriever
 
 class Evaluator:
@@ -12,5 +12,13 @@ class Evaluator:
     def name(self) -> str:
         """
         Returns the evaluator name (e.g., "BEIR", "MTEB", "FRAME").
+        """
+        raise NotImplementedError
+    
+    def save_eval_results_to_csv(self,
+        results: Tuple[Dict[str, float], Dict[str, float], Dict[str, float], Dict[str, float]],
+    ) -> None:
+        """
+        Saves the evaluation results to a CSV file.
         """
         raise NotImplementedError

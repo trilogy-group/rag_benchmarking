@@ -7,7 +7,8 @@ This repository provides simple utilities for benchmarking retrieval systems wit
 - **RAGTruth** – loads the [RAGTruth](https://github.com/microsoft/RAGTruth) dataset via HuggingFace using `RagTruthDataset`.
 
 ## Running an Experiment
-Experiments can be configured in `src/main.py`. Example for RAGTruth:
+Experiments are defined in `src/experiments.py` and executed by `src/main.py`.
+Example for RAGTruth:
 
 ```python
 from benchmark_datasets.ragtruth_dataset import RagTruthDataset
@@ -18,4 +19,4 @@ from evaluators.beir_evaluator import BEIREvaluator
 # ... set up experiment runner
 ```
 
-Use `python -m pip install -r requirements.txt` (or `poetry install`) to install dependencies including `datasets` for RAGTruth support.
+Use `poetry install` to install dependencies, including the `datasets` package required for RAGTruth support.
