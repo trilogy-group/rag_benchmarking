@@ -39,7 +39,7 @@ experiments: List[ExperimentConfig] = [
         experiment_runner=ExperimentRunner,
         text_embedding_model="text-embedding-3-large",
         openai_model="gpt-4o",
-        max_corpus_size=200000
+        max_corpus_size=200000,
     ),
     ExperimentConfig(
         name="beir-scidocs-3-large-gpt-4o",
@@ -54,7 +54,7 @@ experiments: List[ExperimentConfig] = [
         experiment_runner=ExperimentRunner,
         text_embedding_model="text-embedding-3-large",
         openai_model="gpt-4o",
-        max_corpus_size=25000
+        max_corpus_size=25000,
     ),
     ExperimentConfig(
         name="beir-scidocs-ada-002-gpt-4o",
@@ -69,7 +69,7 @@ experiments: List[ExperimentConfig] = [
         experiment_runner=ExperimentRunner,
         text_embedding_model="text-embedding-ada-002",
         openai_model="gpt-4o",
-        max_corpus_size=25000
+        max_corpus_size=25000,
     ),
     ExperimentConfig(
         name="frame-3-large-gpt-4o",
@@ -84,7 +84,7 @@ experiments: List[ExperimentConfig] = [
         experiment_runner=ExperimentRunner,
         text_embedding_model="text-embedding-3-large",
         openai_model="gpt-4o",
-        max_corpus_size=25000
+        max_corpus_size=25000,
     ),
     ExperimentConfig(
         name="ragtruth-3-large-gpt-4o",
@@ -99,9 +99,10 @@ experiments: List[ExperimentConfig] = [
         experiment_runner=ExperimentRunner,
         text_embedding_model="text-embedding-3-large",
         openai_model="gpt-4o",
-        max_corpus_size=1000
-    )
+        max_corpus_size=1000,
+    ),
 ]
+
 
 def get_experiment_config(name: str) -> ExperimentConfig:
     for exp in experiments:
