@@ -1,4 +1,4 @@
-from benchmarks._benchmark_dataset import BenchmarkDataset, BenchmarkData
+from benchmark_datasets._benchmark_dataset import BenchmarkDataset, BenchmarkData
 import pathlib
 import os
 from beir import util
