@@ -1,5 +1,6 @@
 from experiment_runner import ExperimentRunner
 from benchmark_datasets.beir_dataset import BeirDataset
+from benchmark_datasets.ragtruth_dataset import RagTruthDataset
 from datastores.azure_ai_search_store import AzureAISearchStore
 from retrievers.azure_ai_search_retriever import AzureAISearchRetriever
 from evaluators.beir_evaluator import BEIREvaluator
@@ -55,6 +56,20 @@ experiments = [
         "text_embedding_model": "text-embedding-ada-002",
         "openai_model": "gpt-4o",
         "max_corpus_size": 25000,
+    },
+    {
+        "index_name": "ragtruth-index",
+        "agent_name": "ragtruth-agent",
+        "dataset_name": "ragtruth",
+        "retriever": AzureAISearchRetriever,
+        "evaluator": BEIREvaluator,
+        "datastore": AzureAISearchStore,
+        "dataset": RagTruthDataset,
+        "experiment_runner": ExperimentRunner,
+        "k_values": [1, 3, 5, 10],
+        "text_embedding_model": "text-embedding-3-large",
+        "openai_model": "gpt-4o",
+        "max_corpus_size": 1000,
     }
 ]
 
