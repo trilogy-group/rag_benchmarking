@@ -132,6 +132,8 @@ class AzureAISearchStore(DataStore):
 
         print(f"Indexing {total} documents to index '{self.index_name}' in batches of {batch_size}.")
 
+        print(f"Documents: {documents[:3]}")
+
         try:
             with SearchIndexingBufferedSender(
                 endpoint=self.endpoint,

@@ -8,6 +8,7 @@ from datasets import load_dataset, load_from_disk, Dataset
 from collections import defaultdict
 import requests
 from urllib.parse import urlparse, unquote
+import hashlib
 
 class FrameDataset(BenchmarkDataset):
     def __init__(self, dataset_name: str, base_path:str="./data/frames", split="test"):
@@ -19,6 +20,7 @@ class FrameDataset(BenchmarkDataset):
         self.answers = {}
         self.evidence = {}
         self.corpus = {}
+        self.relevant_docs = {}
     
     def extract_title_from_url(self, wiki_url: str) -> str:
         parsed = urlparse(wiki_url)
@@ -67,55 +69,68 @@ class FrameDataset(BenchmarkDataset):
 
         print(f"Number of items in dataset: {len(data)}")
 
-        for i, item in enumerate(data):
-            print(f"\n🔍 Query {i}/{len(data)}: {item['Prompt']}")
-            qid = f"q{i}"
-            self.queries[qid] = item["Prompt"]
-            self.answers[qid] = item["Answer"]
-            queries_data[qid] = item["Prompt"]
+        # The dataset has 824 queries
+        if len(qrels_data) < 50:
+            for i, item in enumerate(data):
+                qid = f"q{i}"
+                if qid not in qrels_data:
+                    print(f"\n🔍 Query {i}/{len(data)}: {item['Prompt']}")
+                    self.queries[qid] = item["Prompt"]
+                    self.answers[qid] = item["Answer"]
+                    queries_data[qid] = item["Prompt"]
 
-            links = [item.get(f"wikipedia_link_{j}") for j in range(1, 12)]
-            links = [l.strip() for l in links if l and isinstance(l, str) and l.strip()]
+                    links = [item.get(f"wikipedia_link_{j}") for j in range(1, 12)]
+                    links = [l.strip() for l in links if l and isinstance(l, str) and l.strip()]
 
-            for link in links:
-                title = self.extract_title_from_url(link)
-                url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{title}"
-                print(f"🌐 Fetching: {url}")
-                try:
-                    response = requests.get(url)
-                    if response.status_code == 200:
-                        doc = response.json()
-                        doc_id = doc["title"].replace(" ", "_")
+                    for link in links:
+                        title = self.extract_title_from_url(link)
+                        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{title}"
+                        print(f"🌐 Fetching: {url}")
+                        max_retries = 3
+                        for attempt in range(max_retries):
+                            try:
+                                response = requests.get(url, timeout=10)
+                                if response.status_code == 200:
+                                    doc = response.json()
+                                    doc_id = hashlib.md5(doc["title"].encode('utf-8')).hexdigest()
 
-                        if doc_id not in seen_doc_ids:
-                            seen_doc_ids.add(doc_id)
-                            doc_entry = {
-                                "title": doc.get("title", ""),
-                                "text": doc.get("extract", "")
-                            }
-                            self.corpus[doc_id] = doc_entry
-                            corpus_data[doc_id] = doc_entry
+                                    if doc_id not in seen_doc_ids:
+                                        seen_doc_ids.add(doc_id)
+                                        doc_entry = {
+                                            "title": doc.get("title", ""),
+                                            "text": doc.get("extract", "")
+                                        }
+                                        self.corpus[doc_id] = doc_entry
+                                        corpus_data[doc_id] = doc_entry
 
-                        qrels[qid][doc_id] = 1
-                        qrels_data[qid] = qrels[qid]
-                    else:
-                        print(f"⚠️ Failed with status {response.status_code}: {url}")
-                except Exception as e:
-                    print(f"❌ Failed to fetch {link}: {e}")
+                                    qrels[qid][doc_id] = 1
+                                    qrels_data[qid] = qrels[qid]
+                                    break  # Exit the retry loop on success
+                                else:
+                                    print(f"⚠️ Failed with status {response.status_code}: {url}")
+                            except Exception as e:
+                                print(f"❌ Attempt {attempt + 1} failed to fetch {link}: {e}")
+                                if attempt == max_retries - 1:
+                                    print(f"❌ All retry attempts failed for {link}")
+                                print(f"❌ Failed to fetch {link}: {e}")
 
-            # Write updated state
-            with open(queries_file, "w") as f:
-                json.dump(queries_data, f, indent=2)
-            with open(corpus_file, "w") as f:
-                json.dump(corpus_data, f, indent=2)
-            with open(qrels_file, "w") as f:
-                json.dump(qrels_data, f, indent=2)
-
-        print(f"✅ Converted {len(self.queries)} queries and {len(self.corpus)} corpus documents")
+                    # Write updated state
+                    with open(queries_file, "w") as f:
+                        json.dump(queries_data, f, indent=2)
+                    with open(corpus_file, "w") as f:
+                        json.dump(corpus_data, f, indent=2)
+                    with open(qrels_file, "w") as f:
+                        json.dump(qrels_data, f, indent=2)
+            print(f"✅ Converted {len(self.queries)} queries and {len(self.corpus)} corpus documents")
         print(f"📁 Saved retrieval format to {output_dir}")
+
+        self.queries = queries_data
+        self.corpus = corpus_data
+        self.relevant_docs = qrels_data
 
         return BenchmarkData(
             corpus=self.corpus,
             queries=self.queries,
-            relevant_docs=qrels
+            relevant_docs=self.relevant_docs
         )
+    

@@ -13,8 +13,6 @@ from experiment_runner import ExperimentRunner
 
 class ExperimentConfig(BaseModel):
     name: str
-    index_name: str
-    agent_name: str
     dataset_name: str
     k_values: List[int]
     retriever: Type
@@ -29,8 +27,6 @@ class ExperimentConfig(BaseModel):
 experiments: List[ExperimentConfig] = [
     ExperimentConfig(
         name="beir-covid-3-large-gpt-4o",
-        index_name="beir-covid-index",
-        agent_name="beir-covid-agent",
         dataset_name="trec-covid",
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
@@ -44,8 +40,6 @@ experiments: List[ExperimentConfig] = [
     ),
     ExperimentConfig(
         name="beir-scidocs-3-large-gpt-4o",
-        index_name="beir-scidocs-index",
-        agent_name="beir-scidocs-agent",
         dataset_name="scidocs",
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
@@ -59,8 +53,6 @@ experiments: List[ExperimentConfig] = [
     ),
     ExperimentConfig(
         name="beir-scidocs-ada-002-gpt-4o",
-        index_name="beir-scidocs-index-ada-002-gpt4o",
-        agent_name="beir-scidocs-agent-ada-002-gpt4o",
         dataset_name="scidocs",
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
@@ -74,8 +66,6 @@ experiments: List[ExperimentConfig] = [
     ),
     ExperimentConfig(
         name="frame-3-large-gpt-4o",
-        index_name="frame-index",
-        agent_name="frame-agent",
         dataset_name="default",
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
@@ -89,8 +79,6 @@ experiments: List[ExperimentConfig] = [
     ),
     ExperimentConfig(
         name="ragtruth-3-large-gpt-4o",
-        index_name="ragtruth-index",
-        agent_name="ragtruth-agent",
         dataset_name="default",  # or whichever subset you want to use
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,

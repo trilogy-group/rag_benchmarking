@@ -34,8 +34,6 @@ class AzureAISearchRetriever(Retriever):
     #     return hits
 
     def retrieve(self, query: str, top_k: int) -> List[Tuple[str, float]]:
-        print(f"Retrieving for query: {query}")
-
         search_client = SearchClient(endpoint=self.endpoint, index_name=self.index_name, credential=self.credential)
 
         results = search_client.search(
