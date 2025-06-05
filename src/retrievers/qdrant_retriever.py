@@ -2,9 +2,10 @@ from retrievers._retriever import Retriever
 from typing import List, Dict
 import os
 from pinecone import Pinecone
-from embedding_models import PineconeNativeEmbeddingModel
+from embeddings.embedding_models import PineconeNativeEmbeddingModel
 from qdrant_client import QdrantClient
 from openai import OpenAI
+from embeddings.embedding_helper import EmbeddingHelper
 
 class QdrantRetriever(Retriever):
     def __init__(self, index_name: str, agent_name: str, namespace: str, text_embedding_model: str):
@@ -27,12 +28,9 @@ class QdrantRetriever(Retriever):
     def retrieve(self, query: str, top_k: int = 10) -> Dict[str, float]:
         try:
             print(f"🔍 Embedding query: '{query}' using model '{self.text_embedding_model}'")
-            response = self.openai_client.embeddings.create(
-                input=[query],
-                model=self.text_embedding_model
-            )
 
-            query_vector = response.data[0].embedding
+            embedding_helper = EmbeddingHelper(self.text_embedding_model)
+            query_vector = embedding_helper.create_embeddings([{"content": query}])[0]
 
             print(f"📡 Performing Qdrant search in collection: {self.index_name}")
             # print(f"Query vector: {query_vector}")

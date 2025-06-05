@@ -8,3 +8,7 @@ class OpenAIEmbeddingModel(Enum):
     TEXT_EMBEDDING_3_LARGE = "text-embedding-3-large"
     TEXT_EMBEDDING_3_SMALL = "text-embedding-3-small"
 
+class CohereEmbeddingModel(Enum):
+    COHERE_EMBEDDING_V4 = "embed-v4.0"
+    COHERE_EMBEDDING_V3 = "embed-multilingual-v3.0"
+    

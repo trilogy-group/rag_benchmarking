@@ -19,7 +19,8 @@ def main():
     # experiment = get_experiment_config(ExperimentName.PINECONE_FRAME_E5LARGE_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.PINECONE_BEIR_SCIDOCS_E5LARGE_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.PINECONE_FRAME_3_LARGE_GPT_4O)
-    experiment = get_experiment_config(ExperimentName.QDRANT_FRAME_3_LARGE_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.QDRANT_FRAME_3_LARGE_GPT_4O)
+    experiment = get_experiment_config(ExperimentName.QDRANT_FRAME_COHERE_V4_GPT_4O)
 
     
     print(f"Running Experiment: {experiment.name}\n\n")

@@ -2,7 +2,7 @@ from retrievers._retriever import Retriever
 from typing import List, Tuple
 import os
 from pinecone import Pinecone
-from embedding_models import PineconeNativeEmbeddingModel
+from embeddings.embedding_models import PineconeNativeEmbeddingModel
 import openai
 
 class PineconeRetriever(Retriever):

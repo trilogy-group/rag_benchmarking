@@ -5,7 +5,7 @@ import time
 from tqdm import tqdm
 from datastores._datastore import DataStore
 from enum import Enum
-from embedding_models import PineconeNativeEmbeddingModel
+from embeddings.embedding_models import PineconeNativeEmbeddingModel
 from openai import AzureOpenAI
 
 

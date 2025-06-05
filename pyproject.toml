@@ -22,6 +22,7 @@ azure-search-documents = "==11.6.0b12"
 tqdm = ">=4.67.1,<5.0.0"
 datasets = "^3.6.0"
 pinecone = "^7.0.2"
+cohere = "^5.15.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

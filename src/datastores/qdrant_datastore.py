@@ -6,7 +6,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models as qdrant_models
 from datastores._datastore import DataStore
 from openai import OpenAI
-
+from embeddings.openai_embedding import OpenAIEmbedding
+from embeddings.embedding_helper import EmbeddingHelper
 
 class QdrantDatastore(DataStore):
     def __init__(
@@ -22,19 +23,14 @@ class QdrantDatastore(DataStore):
         self.openai_model = openai_model
         self.agent_name = agent_name
         self.index_name = index_name
-
         # Qdrant setup
         self.qdrant_client = QdrantClient(
             url=os.getenv("QDRANT_CLOUD_URL"),
             api_key=os.getenv("QDRANT_API_KEY")
         )
 
-        # OpenAI setup
-        self.openai_client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY")
-        )
-
-        self.vector_size = 3072  # Adjust this based on the actual embedding model dimension
+        self.embedding_helper = EmbeddingHelper(self.text_embedding_model)
+        self.vector_size = self.embedding_helper.get_embedding_size()  
         self.create_collection()
 
     def create_collection(self):
@@ -49,16 +45,6 @@ class QdrantDatastore(DataStore):
             )
         else:
             print(f"ℹ️ Qdrant collection already exists: {self.collection_name}")
-
-    def create_embeddings(self, corpus: List[Dict[str, Any]]) -> List[List[float]]:
-        texts = [doc["content"] for doc in corpus]
-
-
-        print(f"📡 Generating embeddings for {len(texts)} documents using OpenAI model: {self.text_embedding_model}")
-        print(f"Texts: {texts[:5]}")
-
-        response = self.openai_client.embeddings.create(input=texts, model=self.text_embedding_model)
-        return [item.embedding for item in response.data]
     
     def prepare_qdrant_records(self, corpus: List[Dict[str, Any]], embeddings: List[List[float]]) -> List[Dict[str, Any]]:
         points = []
@@ -100,11 +86,7 @@ class QdrantDatastore(DataStore):
                 continue
 
             try:
-                response = self.openai_client.embeddings.create(
-                    input=texts,
-                    model=self.text_embedding_model
-                )
-                embeddings = [item.embedding for item in response.data]
+                embeddings = self.embedding_helper.create_embeddings(batch)
 
                 points = [
                     qdrant_models.PointStruct(
@@ -123,6 +105,7 @@ class QdrantDatastore(DataStore):
                     collection_name=self.collection_name,
                     points=points
                 )
+                time.sleep(2)
             except Exception as e:
                 print(f"❌ Error processing batch {i}-{i + len(batch)}: {e}")
                 time.sleep(5)

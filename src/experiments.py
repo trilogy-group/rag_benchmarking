@@ -15,10 +15,11 @@ from evaluators._evaluator import Evaluator
 from evaluators.beir_evaluator import BEIREvaluator
 from evaluators.frame_evaluator import FrameEvaluator
 from retrievers._retriever import Retriever
-from embedding_models import PineconeNativeEmbeddingModel, OpenAIEmbeddingModel
+from embeddings.embedding_models import PineconeNativeEmbeddingModel, OpenAIEmbeddingModel
 from llm_models import OpenAIModel, AnthropicModel
 from datastores.qdrant_datastore import QdrantDatastore
 from retrievers.qdrant_retriever import QdrantRetriever
+from embeddings.embedding_models import CohereEmbeddingModel
 
 class ExperimentName(Enum):
     AZURE_BEIR_COVID_3_LARGE_GPT_4O = "azure-beir-covid-3-large-gpt-4o"
@@ -33,6 +34,7 @@ class ExperimentName(Enum):
     PINECONE_BEIR_SCIDOCS_E5LARGE_GPT_4O = "pinecone-beir-scidocs-e5large-gpt-4o"    
     PINECONE_FRAME_3_LARGE_GPT_4O = "pinecone-frame-3-large-gpt-4o"
     QDRANT_FRAME_3_LARGE_GPT_4O = "qdrant-frame-3-large-gpt-4o"
+    QDRANT_FRAME_COHERE_V4_GPT_4O = "qdrant-frame-cohere-v4-gpt-4o"
 
 
 class ExperimentConfig(BaseModel):
@@ -195,6 +197,18 @@ experiments: List[ExperimentConfig] = [
         dataset=FrameDataset,
         dataset_name="default",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_FRAME_COHERE_V4_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
         openai_model=OpenAIModel.GPT_4O.value,
         max_corpus_size=25000,
     )
