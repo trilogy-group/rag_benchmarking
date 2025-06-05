@@ -17,7 +17,7 @@ class PineconeRetriever(Retriever):
         return model_name in PineconeNativeEmbeddingModel.__members__
 
 
-    def retrieve_old(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
+    def retrieve(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
         dense_index = self.pinecone_client.Index(self.index_name)
 
         response = dense_index.search(
@@ -39,9 +39,9 @@ class PineconeRetriever(Retriever):
             hits[doc_id] = score
 
         print(f"Retrieved {len(hits)} chunks from Pinecone")
-        return list(hits.items())
+        return hits
     
-    def retrieve(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
+    def retrieve_old(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
         dense_index = self.pinecone_client.Index(self.index_name)
 
         if self.is_native_embedding_model(self.text_embedding_model):

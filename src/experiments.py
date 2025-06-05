@@ -17,19 +17,22 @@ from evaluators.frame_evaluator import FrameEvaluator
 from retrievers._retriever import Retriever
 from embedding_models import PineconeNativeEmbeddingModel, OpenAIEmbeddingModel
 from llm_models import OpenAIModel, AnthropicModel
+from datastores.qdrant_datastore import QdrantDatastore
+from retrievers.qdrant_retriever import QdrantRetriever
 
 class ExperimentName(Enum):
-    BEIR_COVID_3_LARGE_GPT_4O = "beir-covid-3-large-gpt-4o"
-    BEIR_SCIDOCS_3_LARGE_GPT_4O = "beir-scidocs-3-large-gpt-4o"
-    BEIR_SCIDOCS_ADA_002_GPT_4O = "beir-scidocs-ada-002-gpt-4o"
-    FRAME_3_LARGE_GPT_4O = "frame-3-large-gpt-4o"
-    RAGTRUTH_3_LARGE_GPT_4O = "ragtruth-3-large-gpt-4o"
+    AZURE_BEIR_COVID_3_LARGE_GPT_4O = "azure-beir-covid-3-large-gpt-4o"
+    AZURE_BEIR_SCIDOCS_3_LARGE_GPT_4O = "azure-beir-scidocs-3-large-gpt-4o"
+    AZURE_BEIR_SCIDOCS_ADA_002_GPT_4O = "azure-beir-scidocs-ada-002-gpt-4o"
+    AZURE_FRAME_3_LARGE_GPT_4O = "azure-frame-3-large-gpt-4o"
+    AZURE_RAGTRUTH_3_LARGE_GPT_4O = "azure-ragtruth-3-large-gpt-4o"
     PINECONE_FRAME_LLAMAV2_GPT_4O = "pinecone-frame-llamav2-gpt-4o"
     PINECONE_FRAME_E5LARGE_GPT_4O = "pinecone-frame-e5large-gpt-4o"
     PINECONE_BEIR_COVID_LLAMAV2_GPT_4O = "pinecone-beir-covid-llamav2-gpt-4o"
     PINECONE_BEIR_SCIDOCS_LLAMAV2_GPT_4O = "pinecone-beir-scidocs-llamav2-gpt-4o"
     PINECONE_BEIR_SCIDOCS_E5LARGE_GPT_4O = "pinecone-beir-scidocs-e5large-gpt-4o"    
     PINECONE_FRAME_3_LARGE_GPT_4O = "pinecone-frame-3-large-gpt-4o"
+    QDRANT_FRAME_3_LARGE_GPT_4O = "qdrant-frame-3-large-gpt-4o"
 
 
 class ExperimentConfig(BaseModel):
@@ -51,7 +54,7 @@ class ExperimentConfig(BaseModel):
 
 experiments: List[ExperimentConfig] = [
     ExperimentConfig(
-        name=ExperimentName.BEIR_COVID_3_LARGE_GPT_4O,
+        name=ExperimentName.AZURE_BEIR_COVID_3_LARGE_GPT_4O,
         dataset_name="trec-covid",
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
@@ -64,7 +67,7 @@ experiments: List[ExperimentConfig] = [
         max_corpus_size=200000
     ),
     ExperimentConfig(
-        name=ExperimentName.BEIR_SCIDOCS_3_LARGE_GPT_4O,
+        name=ExperimentName.AZURE_BEIR_SCIDOCS_3_LARGE_GPT_4O,
         dataset_name="scidocs",
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
@@ -76,7 +79,7 @@ experiments: List[ExperimentConfig] = [
         max_corpus_size=25000
     ),
     ExperimentConfig(
-        name=ExperimentName.BEIR_SCIDOCS_ADA_002_GPT_4O,
+        name=ExperimentName.AZURE_BEIR_SCIDOCS_ADA_002_GPT_4O,
         dataset_name="scidocs",
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
@@ -88,7 +91,7 @@ experiments: List[ExperimentConfig] = [
         max_corpus_size=25000
     ),
     ExperimentConfig(
-        name=ExperimentName.FRAME_3_LARGE_GPT_4O,
+        name=ExperimentName.AZURE_FRAME_3_LARGE_GPT_4O,
         dataset_name="default",
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
@@ -100,7 +103,7 @@ experiments: List[ExperimentConfig] = [
         max_corpus_size=25000
     ),
     ExperimentConfig(
-        name=ExperimentName.RAGTRUTH_3_LARGE_GPT_4O,
+        name=ExperimentName.AZURE_RAGTRUTH_3_LARGE_GPT_4O,
         dataset_name="default",  # or whichever subset you want to use
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
@@ -177,6 +180,18 @@ experiments: List[ExperimentConfig] = [
         retriever=PineconeRetriever,
         evaluator=FrameEvaluator,
         datastore=PineconeDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_FRAME_3_LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
         dataset=FrameDataset,
         dataset_name="default",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,

@@ -46,10 +46,10 @@ class ExperimentRunner:
 
 
         # Index documents
-        self.datastore.index_corpus(documents[:self.corpus_size])
+        # self.datastore.index_corpus(documents[:self.corpus_size])
         
         # Evaluate the retriever
-        # self.evaluator.evaluate(self.retriever, self.dataset)
+        self.evaluator.evaluate(self.retriever, self.dataset)
 
 
 

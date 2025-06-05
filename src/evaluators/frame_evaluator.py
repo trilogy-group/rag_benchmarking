@@ -24,7 +24,7 @@ class FrameEvaluator(Evaluator):
         corpus = dataset.get_corpus()
         qrels = dataset.get_relevant_docs()
 
-        print(f"📊 Evaluating {len(queries)} queries over {len(corpus)} documents")
+        print(f"📊 Frame Evaluating {len(queries)} queries over {len(corpus)} documents")
 
         # Run retrieval and collect results
         results = {}
@@ -34,8 +34,11 @@ class FrameEvaluator(Evaluator):
             print(f"Hits: {hits}")
             results[qid] = hits
 
+        print(f"Results: {results} {results[list(results.keys())[0]]}")
+
         # Use BEIR's evaluator
-        evaluator = EvaluateRetrieval()
+        evaluator = EvaluateRetrieval()        
+
         metrics = evaluator.evaluate(
             qrels=qrels,
             results=results,

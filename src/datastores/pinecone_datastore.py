@@ -28,7 +28,9 @@ class PineconeDatastore(DataStore):
 
     def is_native_embedding_model(self, model_name: str) -> bool:
         print(f"🔍 Checking if {model_name} is a native embedding model")
-        return model_name in PineconeNativeEmbeddingModel.__members__
+        is_native = model_name in [model.value for model in PineconeNativeEmbeddingModel]
+        print(f"🔍 {model_name} is a native embedding model: {is_native}")
+        return is_native
     
         
     def create_index_custom_model(self):
@@ -91,7 +93,7 @@ class PineconeDatastore(DataStore):
         ]
 
 
-    def index_corpus_old(self, corpus: List[Dict[str, Any]]):
+    def index_corpus(self, corpus: List[Dict[str, Any]]):
         if not corpus:
             print("⚠️ Empty corpus provided. Skipping indexing.")
             return
@@ -116,7 +118,7 @@ class PineconeDatastore(DataStore):
         stats = dense_index.describe_index_stats()
         print(f"✅ Index stats: {stats}")
     
-    def index_corpus(self, corpus: List[Dict[str, Any]]):
+    def index_corpus_old(self, corpus: List[Dict[str, Any]]):
         if not corpus:
             print("⚠️ Empty corpus provided. Skipping indexing.")
             return
@@ -139,6 +141,7 @@ class PineconeDatastore(DataStore):
             ]
 
         batch_size = 90
+
         for i in tqdm(range(0, len(records), batch_size), desc="📥 Indexing batches"):
             batch = records[i:i + batch_size]
             try:
