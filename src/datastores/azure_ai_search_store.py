@@ -15,7 +15,8 @@ from tqdm import tqdm
 
 
 class AzureAISearchStore(DataStore):
-    def __init__(self, index_name: str, agent_name: str, openai_model: str, text_embedding_model: str):
+    def __init__(self, namespace: str, index_name: str, agent_name: str, openai_model: str, text_embedding_model: str):
+        self.namespace = namespace
         self.index_name = index_name
         self.agent_name = agent_name
         self.openai_model = openai_model
