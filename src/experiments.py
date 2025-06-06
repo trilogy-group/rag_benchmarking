@@ -19,7 +19,7 @@ from embeddings.embedding_models import PineconeNativeEmbeddingModel, OpenAIEmbe
 from llm_models import OpenAIModel, AnthropicModel
 from datastores.qdrant_datastore import QdrantDatastore
 from retrievers.qdrant_retriever import QdrantRetriever
-from embeddings.embedding_models import CohereEmbeddingModel
+from embeddings.embedding_models import CohereEmbeddingModel, GeminiEmbeddingModel
 
 class ExperimentName(Enum):
     AZURE_BEIR_COVID_3_LARGE_GPT_4O = "azure-beir-covid-3-large-gpt-4o"
@@ -35,6 +35,8 @@ class ExperimentName(Enum):
     PINECONE_FRAME_3_LARGE_GPT_4O = "pinecone-frame-3-large-gpt-4o"
     QDRANT_FRAME_3_LARGE_GPT_4O = "qdrant-frame-3-large-gpt-4o"
     QDRANT_FRAME_COHERE_V4_GPT_4O = "qdrant-frame-cohere-v4-gpt-4o"
+    QDRANT_FRAME_GEMINI_001_GPT_4O = "qdrant-frame-gemini-001-gpt-4o"
+    QDRANT_FRAME_GEMINI_EXP_03_07_GPT_4O = "qdrant-frame-gemini-exp-03-07-gpt-4o"
 
 
 class ExperimentConfig(BaseModel):
@@ -209,6 +211,30 @@ experiments: List[ExperimentConfig] = [
         dataset=FrameDataset,
         dataset_name="default",
         text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_FRAME_GEMINI_001_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_FRAME_GEMINI_EXP_03_07_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=GeminiEmbeddingModel.GEMINI_EXP_03_07.value,
         openai_model=OpenAIModel.GPT_4O.value,
         max_corpus_size=25000,
     )

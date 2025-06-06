@@ -11,4 +11,10 @@ class OpenAIEmbeddingModel(Enum):
 class CohereEmbeddingModel(Enum):
     COHERE_EMBEDDING_V4 = "embed-v4.0"
     COHERE_EMBEDDING_V3 = "embed-multilingual-v3.0"
+
+class GeminiEmbeddingModel(Enum):
+    GEMINI_001 = "gemini-embedding-001"
+    GEMINI_EXP_03_07 = "gemini-embedding-exp-03-07"
     
+class StellaEmbeddingModel(Enum):
+    STELLA_1_5_V5 = "stella-base-v1"

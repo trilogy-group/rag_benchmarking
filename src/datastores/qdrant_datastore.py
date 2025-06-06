@@ -5,8 +5,6 @@ from tqdm import tqdm
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qdrant_models
 from datastores._datastore import DataStore
-from openai import OpenAI
-from embeddings.openai_embedding import OpenAIEmbedding
 from embeddings.embedding_helper import EmbeddingHelper
 
 class QdrantDatastore(DataStore):
@@ -71,14 +69,13 @@ class QdrantDatastore(DataStore):
 
         print(f"📥 Indexing {len(corpus)} documents to Qdrant collection: {self.collection_name}")
 
-        batch_size = 50
+        batch_size = 10
         for i in tqdm(range(0, len(corpus), batch_size), desc="📦 Indexing batches"):
             batch = corpus[i:i + batch_size]
             texts = [doc.get("content", "").strip() for doc in batch]
             texts = [t for t in texts if t]
 
             print(f"Batch: {batch[0]} {len(batch)}")
-
             print(f"Texts: {texts[0]} {len(texts)}")
 
             if not texts:
@@ -87,7 +84,6 @@ class QdrantDatastore(DataStore):
 
             try:
                 embeddings = self.embedding_helper.create_embeddings(batch)
-
                 points = [
                     qdrant_models.PointStruct(
                         id=str(doc["id"]),
@@ -105,7 +101,7 @@ class QdrantDatastore(DataStore):
                     collection_name=self.collection_name,
                     points=points
                 )
-                time.sleep(2)
+                time.sleep(10)
             except Exception as e:
                 print(f"❌ Error processing batch {i}-{i + len(batch)}: {e}")
                 time.sleep(5)
@@ -116,3 +112,5 @@ class QdrantDatastore(DataStore):
     def retrieve(self, query: str, top_k: int = 10):
         # Retrieval not yet implemented
         pass
+
+
