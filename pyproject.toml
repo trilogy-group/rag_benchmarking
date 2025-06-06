@@ -28,6 +28,7 @@ scikit-learn = "^1.7.0"
 numpy = "^2.2.6"
 torch = "^2.7.1"
 transformers = "^4.52.4"
+openpyxl = "^3.1.5"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

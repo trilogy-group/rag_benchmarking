@@ -5,20 +5,20 @@ from sklearn.preprocessing import normalize
 import torch
 import numpy as np
 
-class StellaEmbedding(Embedding):
+class ModernBERTEmbedding(Embedding):
     def __init__(self, model: str):
         self.model_name = model
-        print(f"Stella model: {self.model_name}")
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
-        self.model = AutoModel.from_pretrained(self.model_name, trust_remote_code=True).eval()
+        print(f"ModernBERT model: {self.model_name}")
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = AutoModel.from_pretrained(self.model_name).eval()
 
     def get_embedding_size(self) -> int:
-        return 1536
+        return 1024  # ModernBERT Large typically uses 1024D
 
     def create_embeddings(self, docs: List[Dict[str, Any]]) -> List[List[float]]:
         texts = [doc["content"] for doc in docs]
 
-        print(f"📡 Generating embeddings for {len(texts)} documents using Stella model: {self.model_name}")
+        print(f"📡 Generating embeddings for {len(texts)} documents using ModernBERT model: {self.model_name}")
         # print(f"Texts: {texts[:1]}")
 
         embeddings = []
@@ -27,8 +27,9 @@ class StellaEmbedding(Embedding):
             inputs = self.tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
             with torch.no_grad():
                 outputs = self.model(**inputs)
+
             mean_embedding = outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
-            norm_embedding = normalize([mean_embedding])[0]
+            norm_embedding = normalize([mean_embedding])[0]  # Optional L2 normalization
             embeddings.append(norm_embedding.tolist())
 
         print(f"Successfully generated {len(embeddings)} embedding vectors.")

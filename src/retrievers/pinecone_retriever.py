@@ -3,6 +3,7 @@ from typing import List, Tuple
 import os
 from pinecone import Pinecone
 from embeddings.embedding_models import PineconeNativeEmbeddingModel
+from embeddings.embedding_helper import EmbeddingHelper
 import openai
 
 class PineconeRetriever(Retriever):
@@ -12,12 +13,19 @@ class PineconeRetriever(Retriever):
         self.namespace = namespace
         self.pinecone_client = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
         self.text_embedding_model = text_embedding_model
+        self.embedding_helper = EmbeddingHelper(self.text_embedding_model)
 
     def is_native_embedding_model(self, model_name: str) -> bool:
         return model_name in PineconeNativeEmbeddingModel.__members__
 
 
     def retrieve(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
+        if self.is_native_embedding_model(self.text_embedding_model):
+            return self.retrieve_from_native_pinecone_index(query, top_k)
+        else:
+            return self.retrieve_from_custom_index(query, top_k)
+
+    def retrieve_from_native_pinecone_index(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
         dense_index = self.pinecone_client.Index(self.index_name)
 
         response = dense_index.search(
@@ -41,33 +49,25 @@ class PineconeRetriever(Retriever):
         print(f"Retrieved {len(hits)} chunks from Pinecone")
         return hits
     
-    def retrieve_old(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
+    def retrieve_from_custom_index(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
         dense_index = self.pinecone_client.Index(self.index_name)
+        query_vector = self.embedding_helper.create_embeddings([{"content": query}])[0]
+        response = dense_index.search(
+            namespace=self.namespace,
+            query={
+                "vector": {
+                    "values": query_vector
+                },
+                "top_k": top_k
+            }
+        )
+        print(f"Pinecone results: {len(response['result']['hits'])}")
 
-        if self.is_native_embedding_model(self.text_embedding_model):
-            response = dense_index.search(
-                namespace=self.namespace,
-                query={
-                    "top_k": top_k,
-                    "inputs": {
-                        "text": query
-                    }
-                }
-            )
-            matches = response["result"]["hits"]
-        else:
-            embedding_response = openai.embeddings.create(
-                input=[query],
-                model=self.text_embedding_model
-            )
-            query_vector = embedding_response.data[0].embedding
-            response = dense_index.search(
-                namespace=self.namespace,
-                vector=query_vector,
-                top_k=top_k
-            )
-            matches = response["matches"]
+        hits = {}
+        for match in response['result']["hits"]:
+            doc_id = match["_id"]
+            score = match["_score"]
+            hits[doc_id] = score
 
-        hits = [(match.get("id") or match.get("_id"), match.get("score") or match.get("_score")) for match in matches]
-        print(f"🔍 Retrieved {len(hits)} chunks from Pinecone")
+        print(f"Retrieved {len(hits)} chunks from Pinecone")
         return hits

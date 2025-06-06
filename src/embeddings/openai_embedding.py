@@ -19,7 +19,7 @@ class OpenAIEmbedding(Embedding):
         texts = [doc["content"] for doc in docs]
 
         print(f"📡 Generating embeddings for {len(texts)} documents using OpenAI model: {self.model}")
-        print(f"Texts: {texts[:5]}")
+        # print(f"Texts: {texts[:5]}")
 
         response = self.openai_client.embeddings.create(input=texts, model=self.model)
         return [item.embedding for item in response.data]

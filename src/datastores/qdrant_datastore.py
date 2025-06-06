@@ -6,6 +6,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models as qdrant_models
 from datastores._datastore import DataStore
 from embeddings.embedding_helper import EmbeddingHelper
+import uuid
 
 class QdrantDatastore(DataStore):
     def __init__(
@@ -61,6 +62,12 @@ class QdrantDatastore(DataStore):
             )
         return points
         
+    def _is_valid_uuid(self, value: str) -> bool:
+        try:
+            uuid.UUID(value)
+            return True
+        except ValueError:
+            return False
 
     def index_corpus(self, corpus: List[Dict[str, Any]]):
         if not corpus:
@@ -69,7 +76,7 @@ class QdrantDatastore(DataStore):
 
         print(f"📥 Indexing {len(corpus)} documents to Qdrant collection: {self.collection_name}")
 
-        batch_size = 10
+        batch_size = 50
         for i in tqdm(range(0, len(corpus), batch_size), desc="📦 Indexing batches"):
             batch = corpus[i:i + batch_size]
             texts = [doc.get("content", "").strip() for doc in batch]
@@ -86,7 +93,7 @@ class QdrantDatastore(DataStore):
                 embeddings = self.embedding_helper.create_embeddings(batch)
                 points = [
                     qdrant_models.PointStruct(
-                        id=str(doc["id"]),
+                        id=str(uuid.UUID(doc["id"])) if self._is_valid_uuid(doc["id"]) else str(uuid.uuid4()),
                         vector=embedding,
                         payload={
                             "text": doc["content"],
@@ -101,7 +108,6 @@ class QdrantDatastore(DataStore):
                     collection_name=self.collection_name,
                     points=points
                 )
-                time.sleep(10)
             except Exception as e:
                 print(f"❌ Error processing batch {i}-{i + len(batch)}: {e}")
                 time.sleep(5)

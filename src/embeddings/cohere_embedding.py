@@ -15,7 +15,7 @@ class CohereEmbedding(Embedding):
     def create_embeddings(self, corpus: List[Dict[str, Any]]) -> List[List[float]]:
         texts = [doc["content"] for doc in corpus]
         print(f"📡 Generating cohere embeddings for {len(texts)} documents using model: {self.model}")
-        print(f"Texts: {texts[:5]}")
+        # print(f"Texts: {texts[:5]}")
 
         response = self.cohere_client.embed(
             texts=texts, 

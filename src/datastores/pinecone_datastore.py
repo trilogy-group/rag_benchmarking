@@ -7,6 +7,7 @@ from datastores._datastore import DataStore
 from enum import Enum
 from embeddings.embedding_models import PineconeNativeEmbeddingModel
 from openai import AzureOpenAI
+from embeddings.embedding_helper import EmbeddingHelper
 
 
 
@@ -19,12 +20,12 @@ class PineconeDatastore(DataStore):
         self.openai_model = openai_model
         self.pinecone_client = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
         self.namespace = namespace
+        self.embedding_helper = EmbeddingHelper(self.text_embedding_model)
+        self.vector_size = self.embedding_helper.get_embedding_size()  
+        print(f"🔍 Vector size: {self.vector_size}")
         self.create_index()
-        self.openai_client = AzureOpenAI(
-            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            api_version="2025-04-14",
-            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
-        )
+
+
 
     def is_native_embedding_model(self, model_name: str) -> bool:
         print(f"🔍 Checking if {model_name} is a native embedding model")
@@ -39,7 +40,7 @@ class PineconeDatastore(DataStore):
         if not self.pinecone_client.has_index(self.index_name):
             self.pinecone_client.create_index(
                 name=self.index_name,
-                dimension=3072,
+                dimension=self.vector_size,
                 metric="cosine",
                 spec=ServerlessSpec(
                     cloud='aws',
@@ -73,11 +74,6 @@ class PineconeDatastore(DataStore):
             print(f"🔍 Creating index for custom embedding model: {self.text_embedding_model}")
             self.create_index_custom_model()
 
-    def create_embeddings(self, corpus: List[Dict[str, Any]]) -> List[List[float]]:
-        texts = [doc["content"] for doc in corpus]
-        print(f"📡 Generating embeddings for {len(texts)} documents with model: {self.text_embedding_model}")
-        res = self.openai_client.embeddings.create(input=texts, model=self.text_embedding_model)
-        return [r.embedding for r in res.data]
     
     def prepare_pinecone_records(self, corpus: List[Dict[str, Any]], embeddings: List[List[float]]) -> List[Dict[str, Any]]:
         return [
@@ -93,7 +89,7 @@ class PineconeDatastore(DataStore):
         ]
 
 
-    def index_corpus(self, corpus: List[Dict[str, Any]]):
+    def index_corpus_pinecone_native_embedding(self, corpus: List[Dict[str, Any]]):
         if not corpus:
             print("⚠️ Empty corpus provided. Skipping indexing.")
             return
@@ -117,43 +113,44 @@ class PineconeDatastore(DataStore):
         # View stats for the index
         stats = dense_index.describe_index_stats()
         print(f"✅ Index stats: {stats}")
-    
-    def index_corpus_old(self, corpus: List[Dict[str, Any]]):
+
+    def index_corpus(self, corpus: List[Dict[str, Any]]):
+        if self.is_native_embedding_model(self.text_embedding_model):
+            self.index_corpus_pinecone_native_embedding(corpus)
+        else:
+            self.index_corpus_custom_embedding(corpus)
+
+    def index_corpus_custom_embedding(self, corpus: List[Dict[str, Any]]):
         if not corpus:
             print("⚠️ Empty corpus provided. Skipping indexing.")
             return
 
-        index = self.pinecone_client.Index(self.index_name)
+        dense_index = self.pinecone_client.Index(self.index_name)
+        batch_size = 50
 
-        if not self.is_native_embedding_model(self.text_embedding_model):
-            embeddings = self.create_embeddings(corpus)
-            records = self.prepare_pinecone_records(corpus, embeddings)
-        else:
-            records = [
-                {
-                    "id": doc["id"],
-                    "metadata": {
-                        "text": doc["content"],
-                        **{k: v for k, v in doc.items() if k not in ["id", "content"]}
-                    }
-                }
-                for doc in corpus
-            ]
+        for i in tqdm(range(0, len(corpus), batch_size), desc="📦 Indexing batches"):
+            batch = corpus[i:i + batch_size]
+            texts = [doc.get("content", "").strip() for doc in batch]
+            texts = [t for t in texts if t]
 
-        batch_size = 90
+            if not texts:
+                print(f"⚠️ Skipping empty/invalid batch at index {i}")
+                continue
 
-        for i in tqdm(range(0, len(records), batch_size), desc="📥 Indexing batches"):
-            batch = records[i:i + batch_size]
             try:
-                index.upsert(records=batch, namespace=self.namespace)
+                embeddings = self.embedding_helper.create_embeddings(batch)
+                records = self.prepare_pinecone_records(batch, embeddings)
+
+                dense_index.upsert(vectors=records, namespace=self.namespace)
+                # time.sleep(10)
+
             except Exception as e:
-                print(f"❌ Error indexing batch {i}: {e}")
-                time.sleep(10)
+                print(f"❌ Error processing batch {i}-{i + len(batch)}: {e}")
+                time.sleep(5)
 
-        print(f"✅ Successfully indexed {len(records)} documents")
-        time.sleep(5)
-        stats = index.describe_index_stats()
-        print(f"📊 Index stats: {stats}")
-
+        print(f"✅ Successfully indexed {len(corpus)} documents")
+        
+    
+    
     def retrieve(self, query: str, top_k: int = 10):
         pass

@@ -15,11 +15,10 @@ from evaluators._evaluator import Evaluator
 from evaluators.beir_evaluator import BEIREvaluator
 from evaluators.frame_evaluator import FrameEvaluator
 from retrievers._retriever import Retriever
-from embeddings.embedding_models import PineconeNativeEmbeddingModel, OpenAIEmbeddingModel
 from llm_models import OpenAIModel, AnthropicModel
 from datastores.qdrant_datastore import QdrantDatastore
 from retrievers.qdrant_retriever import QdrantRetriever
-from embeddings.embedding_models import CohereEmbeddingModel, GeminiEmbeddingModel
+from embeddings.embedding_models import CohereEmbeddingModel, GeminiEmbeddingModel, PineconeNativeEmbeddingModel, OpenAIEmbeddingModel, StellaEmbeddingModel, ModernBERTEmbeddingModel
 
 class ExperimentName(Enum):
     AZURE_BEIR_COVID_3_LARGE_GPT_4O = "azure-beir-covid-3-large-gpt-4o"
@@ -33,10 +32,20 @@ class ExperimentName(Enum):
     PINECONE_BEIR_SCIDOCS_LLAMAV2_GPT_4O = "pinecone-beir-scidocs-llamav2-gpt-4o"
     PINECONE_BEIR_SCIDOCS_E5LARGE_GPT_4O = "pinecone-beir-scidocs-e5large-gpt-4o"    
     PINECONE_FRAME_3_LARGE_GPT_4O = "pinecone-frame-3-large-gpt-4o"
+    PINECONE_FRAME_COHERE_V4_GPT_4O = "pinecone-frame-cohere-v4-gpt-4o"
+    PINECONE_FRAME_GEMINI_001_GPT_4O = "pinecone-frame-gemini-001-gpt-4o"
+    PINECONE_FRAME_GEMINI_EXP_03_07_GPT_4O = "pinecone-frame-gemini-exp-03-07-gpt-4o"
+    PINECONE_FRAME_STELLA_1_5B_V5_GPT_4O = "pinecone-frame-stella-1-5b-v5-gpt-4o"
+    PINECONE_FRAME_MODERN_BERT_LARGE_GPT_4O = "pinecone-frame-modern-bert-large-gpt-4o"
+    QDRANT_BEIR_COVID_3_LARGE_GPT_4O = "qdrant-beir-covid-3-large-gpt-4o"
+    QDRANT_BEIR_SCIDOCS_3_LARGE_GPT_4O = "qdrant-beir-scidocs-3-large-gpt-4o"
+    QDRANT_BEIR_SCIDOCS_COHERE_V4_GPT_4O = "qdrant-beir-scidocs-cohere-v4-gpt-4o"
     QDRANT_FRAME_3_LARGE_GPT_4O = "qdrant-frame-3-large-gpt-4o"
     QDRANT_FRAME_COHERE_V4_GPT_4O = "qdrant-frame-cohere-v4-gpt-4o"
     QDRANT_FRAME_GEMINI_001_GPT_4O = "qdrant-frame-gemini-001-gpt-4o"
     QDRANT_FRAME_GEMINI_EXP_03_07_GPT_4O = "qdrant-frame-gemini-exp-03-07-gpt-4o"
+    QDRANT_FRAME_STELLA_1_5B_V5_GPT_4O = "qdrant-frame-stella-1-5b-v5-gpt-4o"
+    QDRANT_FRAME_MODERN_BERT_LARGE_GPT_4O = "qdrant-frame-modern-bert-large-gpt-4o"
 
 
 class ExperimentConfig(BaseModel):
@@ -191,6 +200,91 @@ experiments: List[ExperimentConfig] = [
         max_corpus_size=25000,
     ),
     ExperimentConfig(
+        name=ExperimentName.PINECONE_FRAME_COHERE_V4_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=FrameEvaluator,
+        datastore=PineconeDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_FRAME_GEMINI_001_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=FrameEvaluator,
+        datastore=PineconeDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_FRAME_GEMINI_EXP_03_07_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=FrameEvaluator,
+        datastore=PineconeDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=GeminiEmbeddingModel.GEMINI_EXP_03_07.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_FRAME_STELLA_1_5B_V5_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=FrameEvaluator,
+        datastore=PineconeDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=StellaEmbeddingModel.STELLA_1_5B_V5.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_BEIR_COVID_3_LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=BEIREvaluator,
+        datastore=QdrantDatastore,
+        dataset=BeirDataset,
+        dataset_name="trec-covid",
+        text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_BEIR_SCIDOCS_3_LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=BEIREvaluator,
+        datastore=QdrantDatastore,
+        dataset=BeirDataset,
+        dataset_name="scidocs",
+        text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_BEIR_SCIDOCS_COHERE_V4_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=BEIREvaluator,
+        datastore=QdrantDatastore,
+        dataset=BeirDataset,
+        dataset_name="scidocs",
+        text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
         name=ExperimentName.QDRANT_FRAME_3_LARGE_GPT_4O.value,
         k_values=[1, 3, 5, 10],
         retriever=QdrantRetriever,
@@ -237,7 +331,32 @@ experiments: List[ExperimentConfig] = [
         text_embedding_model=GeminiEmbeddingModel.GEMINI_EXP_03_07.value,
         openai_model=OpenAIModel.GPT_4O.value,
         max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_FRAME_STELLA_1_5B_V5_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=StellaEmbeddingModel.STELLA_1_5B_V5.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_FRAME_MODERN_BERT_LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
+        dataset=FrameDataset,
+        dataset_name="default",
+        text_embedding_model=ModernBERTEmbeddingModel.MODERN_BERT_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
     )
+
 ]
 
 def get_experiment_config(name: ExperimentName) -> ExperimentConfig:

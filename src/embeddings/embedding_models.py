@@ -17,4 +17,7 @@ class GeminiEmbeddingModel(Enum):
     GEMINI_EXP_03_07 = "gemini-embedding-exp-03-07"
     
 class StellaEmbeddingModel(Enum):
-    STELLA_1_5_V5 = "stella-base-v1"
+    STELLA_1_5B_V5 = "dunzhang/stella_en_1.5B_v5"
+
+class ModernBERTEmbeddingModel(Enum):
+    MODERN_BERT_LARGE = "answerdotai/ModernBERT-large"
