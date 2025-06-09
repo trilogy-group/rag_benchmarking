@@ -37,7 +37,7 @@ class PineconeRetriever(Retriever):
                 }
             },
         )
-
+        
         print(f"Pinecone results: {len(response['result']['hits'])}")
 
         hits = {}

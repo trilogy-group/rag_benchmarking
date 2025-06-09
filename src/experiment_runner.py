@@ -43,13 +43,11 @@ class ExperimentRunner:
         print(f"Relevant docs: {list(self.dataset.relevant_docs.values())[:1]}")
 
         # print(f"Sample query IDs: {list(self.dataset.queries.keys())[:5]}")
-
-
         # Index documents
         self.datastore.index_corpus(documents[:self.corpus_size])
         
         # Evaluate the retriever
-        self.evaluator.evaluate(self.retriever, self.dataset)
+        # self.evaluator.evaluate(self.retriever, self.dataset, self.corpus_size)
 
 
 

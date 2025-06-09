@@ -23,9 +23,12 @@ def main():
     # experiment = get_experiment_config(ExperimentName.PINECONE_FRAME_GEMINI_001_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.PINECONE_FRAME_GEMINI_EXP_03_07_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.PINECONE_FRAME_STELLA_1_5B_V5_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.PINECONE_BEIR_NQ_3_LARGE_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.PINECONE_BEIR_NQ_GEMINI_001_GPT_4O)
+
     # experiment = get_experiment_config(ExperimentName.QDRANT_BEIR_COVID_3_LARGE_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.QDRANT_BEIR_SCIDOCS_3_LARGE_GPT_4O)
-    experiment = get_experiment_config(ExperimentName.QDRANT_BEIR_SCIDOCS_COHERE_V4_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.QDRANT_BEIR_SCIDOCS_COHERE_V4_GPT_4O)
 
     # experiment = get_experiment_config(ExperimentName.QDRANT_FRAME_3_LARGE_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.QDRANT_FRAME_COHERE_V4_GPT_4O)
@@ -33,8 +36,12 @@ def main():
     # experiment = get_experiment_config(ExperimentName.QDRANT_FRAME_GEMINI_EXP_03_07_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.QDRANT_FRAME_STELLA_1_5B_V5_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.QDRANT_FRAME_MODERN_BERT_LARGE_GPT_4O)
-
+    # experiment = get_experiment_config(ExperimentName.QDRANT_HOTPOTQA_3_LARGE_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.QDRANT_HOTPOTQA_GEMINI_001_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.VERTEX_AI_FRAME_TEXT_EMBEDDING_005_GPT_4O)
+    experiment = get_experiment_config(ExperimentName.VERTEX_AI_FRAME_ML_E5_LARGE_GPT_4O)
     
+
 
     
     print(f"Running Experiment: {experiment.name}\n\n")

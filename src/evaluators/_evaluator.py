@@ -2,7 +2,7 @@ from typing import Dict, Any, Tuple
 from retrievers._retriever import Retriever
 
 class Evaluator:
-    def evaluate(self, retriever: Retriever, dataset: str) -> Dict[str, Any]:
+    def evaluate(self, retriever: Retriever, dataset: str, max_doc_id: int = None) -> Dict[str, Any]:
         """
         Evaluates the retriever on the given dataset.
         Returns a dictionary of metrics: { "nDCG@10": 0.56, "MRR@10": 0.42, ... }

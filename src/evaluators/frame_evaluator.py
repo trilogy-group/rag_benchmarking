@@ -17,7 +17,7 @@ class FrameEvaluator(Evaluator):
     def name(self) -> str:
         return self._name
 
-    def evaluate(self, retriever: Retriever, dataset: BenchmarkDataset) -> Dict[str, Any]:
+    def evaluate(self, retriever: Retriever, dataset: BenchmarkDataset, max_doc_id: int = None) -> Dict[str, Any]:
         # Load the benchmark dataset
         dataset.load()
         queries = dataset.get_queries()

@@ -15,6 +15,11 @@ class CohereEmbeddingModel(Enum):
 class GeminiEmbeddingModel(Enum):
     GEMINI_001 = "gemini-embedding-001"
     GEMINI_EXP_03_07 = "gemini-embedding-exp-03-07"
+    TEXT_EMBEDDING_005 = "text-embedding-005"
+    TEXT_EMBEDDING_GECKO_001 = "textembedding-gecko@001"
+
+class IntfloatEmbeddingModel(Enum):
+    ML_E5_LARGE = "multilingual-e5-large"
     
 class StellaEmbeddingModel(Enum):
     STELLA_1_5B_V5 = "dunzhang/stella_en_1.5B_v5"
