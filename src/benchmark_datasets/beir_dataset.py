@@ -5,7 +5,7 @@ from beir import util
 from beir.datasets.data_loader import GenericDataLoader
 
 class BeirDataset(BenchmarkDataset):
-    def __init__(self, dataset_name:str="trec-covid", base_path:str="./data/beir"):
+    def __init__(self, dataset_name:str="trec-covid", base_path:str="./data/benchmark_datasets/beir"):
         self.dataset_name = dataset_name
         self.queries = []
         self.relevant_docs = []

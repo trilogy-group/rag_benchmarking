@@ -38,8 +38,13 @@ def main():
     # experiment = get_experiment_config(ExperimentName.QDRANT_FRAME_MODERN_BERT_LARGE_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.QDRANT_HOTPOTQA_3_LARGE_GPT_4O)
     # experiment = get_experiment_config(ExperimentName.QDRANT_HOTPOTQA_GEMINI_001_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.QDRANT_MS_MARCO_3_LARGE_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.QDRANT_MS_MARCO_GEMINI_001_GPT_4O)
+    experiment = get_experiment_config(ExperimentName.QDRANT_NIAH_3_LARGE_GPT_4O)
+    
     # experiment = get_experiment_config(ExperimentName.VERTEX_AI_FRAME_TEXT_EMBEDDING_005_GPT_4O)
-    experiment = get_experiment_config(ExperimentName.VERTEX_AI_FRAME_ML_E5_LARGE_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.VERTEX_AI_FRAME_ML_E5_LARGE_GPT_4O)
+    
     
 
 

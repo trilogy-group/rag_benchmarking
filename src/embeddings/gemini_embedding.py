@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class GeminiEmbedding(Embedding):
     def __init__(self, model: str):
+        print(f"Init GeminiEmbedding model: {model}")
         self.model = model
         print(f"Gemini model: {self.model}")
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -63,10 +64,8 @@ class GeminiEmbedding(Embedding):
         )
 
         embeddings = [embedding.values for embedding in response.embeddings]
-
         print(f"Successfully generated {len(embeddings)} embedding vectors.")
         
-        # Check if vectors were generated before accessing an element
         if embeddings:
             print(f"The dimension of each embedding vector is: {len(embeddings[0])}")
 

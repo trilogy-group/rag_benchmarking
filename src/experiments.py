@@ -20,8 +20,11 @@ from datastores.qdrant_datastore import QdrantDatastore
 from retrievers.qdrant_retriever import QdrantRetriever
 from embeddings.embedding_models import CohereEmbeddingModel, GeminiEmbeddingModel, PineconeNativeEmbeddingModel, OpenAIEmbeddingModel, StellaEmbeddingModel, ModernBERTEmbeddingModel, IntfloatEmbeddingModel
 from benchmark_datasets.hotpotqa_dataset import HotpotQADataset
+from benchmark_datasets.ms_marco_dataset import MSMarcoDataset
 from datastores.vertex_ai_datastore import VertexAiDatastore
 from retrievers.vertex_ai_retriever import VertexAIRetriever
+from benchmark_datasets.niah_dataset import NiahDataset
+
 
 class ExperimentName(Enum):
     AZURE_BEIR_COVID_3_LARGE_GPT_4O = "azure-beir-covid-3-large-gpt-4o"
@@ -54,8 +57,13 @@ class ExperimentName(Enum):
     QDRANT_FRAME_MODERN_BERT_LARGE_GPT_4O = "qdrant-frame-modern-bert-large-gpt-4o"
     QDRANT_HOTPOTQA_3_LARGE_GPT_4O = "qdrant-hotpotqa-3-large-gpt-4o"
     QDRANT_HOTPOTQA_GEMINI_001_GPT_4O = "qdrant-hotpotqa-gemini-001-gpt-4o"
+    QDRANT_MS_MARCO_3_LARGE_GPT_4O = "qdrant-ms-marco-3-large-gpt-4o"
+    QDRANT_MS_MARCO_GEMINI_001_GPT_4O = "qdrant-ms-marco-gemini-001-gpt-4o"
+    QDRANT_NIAH_3_LARGE_GPT_4O = "qdrant-niah-3-large-gpt-4o"
     VERTEX_AI_FRAME_TEXT_EMBEDDING_005_GPT_4O = "vertex-ai-frame-text-embedding-005-gpt-4o"
     VERTEX_AI_FRAME_ML_E5_LARGE_GPT_4O = "vertex-ai-frame-ml-e5-large-gpt-4o"
+
+
     
 
 class ExperimentConfig(BaseModel):
@@ -452,6 +460,42 @@ experiments: List[ExperimentConfig] = [
         dataset=FrameDataset,
         dataset_name="default",
         text_embedding_model=IntfloatEmbeddingModel.ML_E5_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_MS_MARCO_3_LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
+        dataset=MSMarcoDataset,
+        dataset_name="default",
+        text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_MS_MARCO_GEMINI_001_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
+        dataset=MSMarcoDataset,
+        dataset_name="default",
+        text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=25000,
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_NIAH_3_LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
+        dataset=NiahDataset,
+        dataset_name="default",
+        text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
         max_corpus_size=25000,
     ),

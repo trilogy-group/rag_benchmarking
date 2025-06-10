@@ -28,7 +28,7 @@ class FrameEvaluator(Evaluator):
 
         # Run retrieval and collect results
         results = {}
-        for qid, query in list(queries.items())[:50]:
+        for qid, query in list(queries.items())[:100]:
             print(f"Query: {qid} {query}")
             hits = retriever.retrieve(query, top_k=max(self.k_values))  # {doc_id: score}
             print(f"Hits: {hits}")
@@ -36,11 +36,16 @@ class FrameEvaluator(Evaluator):
 
         print(f"Results: {results} {results[list(results.keys())[0]]}")
 
+        # Transform qrels into BEIR format
+        beir_qrels = {}
+        for qid, doc_ids in qrels.items():
+            beir_qrels[qid] = {doc_id: 1 for doc_id in doc_ids}  # Set relevance score to 1 for all relevant docs
+
         # Use BEIR's evaluator
         evaluator = EvaluateRetrieval()        
 
         metrics = evaluator.evaluate(
-            qrels=qrels,
+            qrels=beir_qrels,
             results=results,
             k_values=self.k_values
         )

@@ -44,10 +44,10 @@ class ExperimentRunner:
 
         # print(f"Sample query IDs: {list(self.dataset.queries.keys())[:5]}")
         # Index documents
-        self.datastore.index_corpus(documents[:self.corpus_size])
+        # self.datastore.index_corpus(documents[:self.corpus_size])
         
         # Evaluate the retriever
-        # self.evaluator.evaluate(self.retriever, self.dataset, self.corpus_size)
+        self.evaluator.evaluate(self.retriever, self.dataset, self.corpus_size)
 
 
 

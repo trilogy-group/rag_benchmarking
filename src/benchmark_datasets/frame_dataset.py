@@ -11,7 +11,7 @@ from urllib.parse import urlparse, unquote
 import hashlib
 
 class FrameDataset(BenchmarkDataset):
-    def __init__(self, dataset_name: str, base_path:str="./data/frames", split="test"):
+    def __init__(self, dataset_name: str, base_path:str="./data/benchmark_datasets/frames", split="test"):
         self.base_path = pathlib.Path(base_path)
         self.dataset_name = dataset_name
         self.dataset_path = self.base_path / dataset_name

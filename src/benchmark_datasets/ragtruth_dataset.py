@@ -8,7 +8,7 @@ import os
 class RagTruthDataset(BenchmarkDataset):
     """Dataset loader for the RAGTruth dataset hosted on HuggingFace, with local caching."""
 
-    def __init__(self, dataset_name: str = "default", base_path: str = "./data/ragtruth", split: str = "test"):
+    def __init__(self, dataset_name: str = "default", base_path: str = "./data/benchmark_datasets/ragtruth", split: str = "test"):
         self.hf_dataset = "wandb/RAGTruth-processed"
         self.subset = dataset_name
         self.split = split
@@ -28,6 +28,8 @@ class RagTruthDataset(BenchmarkDataset):
             self.dataset_path.parent.mkdir(parents=True, exist_ok=True)
             ds.save_to_disk(str(self.dataset_path))
             print(f"✅ Saved RAGTruth dataset to: {self.dataset_path}")
+
+            
 
         print(f"📊 Number of items in dataset: {len(ds)}")
         for idx, row in enumerate(ds):
