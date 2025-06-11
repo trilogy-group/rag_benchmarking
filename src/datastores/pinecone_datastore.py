@@ -128,25 +128,36 @@ class PineconeDatastore(DataStore):
 
     #     dense_index = self.pinecone_client.Index(self.index_name)
     #     batch_size = 1000
+    #     sub_batch_size = 100  # 10 parallel sub-batches of 100
 
     #     for i in tqdm(range(0, len(corpus), batch_size), desc="📦 Indexing batches"):
     #         batch = corpus[i:i + batch_size]
-    #         texts = [doc.get("content", "").strip() for doc in batch]
-    #         texts = [t for t in texts if t]
+    #         sub_batches = [batch[j:j + sub_batch_size] for j in range(0, len(batch), sub_batch_size)]
 
-    #         if not texts:
-    #             print(f"⚠️ Skipping empty/invalid batch at index {i}")
-    #             continue
+    #         def process_sub_batch(sub_batch, sub_index):
+    #             texts = [doc.get("content", "").strip() for doc in sub_batch]
+    #             texts = [t for t in texts if t]
 
-    #         try:
-    #             embeddings = self.embedding_helper.create_embeddings(batch)
-    #             records = self.prepare_pinecone_records(batch, embeddings)
-    #             dense_index.upsert(vectors=records, namespace=self.namespace)
-    #             # time.sleep(10)
+    #             if not texts:
+    #                 print(f"⚠️ Skipping empty/invalid sub-batch {sub_index} in batch starting at {i}")
+    #                 return
 
-    #         except Exception as e:
-    #             print(f"❌ Error processing batch {i}-{i + len(batch)}: {e}")
-    #             time.sleep(5)
+    #             try:
+    #                 embeddings = self.embedding_helper.create_embeddings(sub_batch)
+    #                 records = self.prepare_pinecone_records(sub_batch, embeddings)
+    #                 dense_index.upsert(vectors=records, namespace=self.namespace)
+    #                 print(f"✅ Finished sub-batch {sub_index} of batch starting at {i}")
+    #             except Exception as e:
+    #                 print(f"❌ Error in sub-batch {sub_index} of batch {i}: {e}")
+    #                 time.sleep(5)
+
+    #         with ThreadPoolExecutor(max_workers=10) as executor:
+    #             futures = [
+    #                 executor.submit(process_sub_batch, sub_batches[j], j)
+    #                 for j in range(len(sub_batches))
+    #             ]
+    #             for future in as_completed(futures):
+    #                 future.result()  # Raises exceptions if any
 
     #     print(f"✅ Successfully indexed {len(corpus)} documents")
 
@@ -157,39 +168,74 @@ class PineconeDatastore(DataStore):
 
         dense_index = self.pinecone_client.Index(self.index_name)
         batch_size = 1000
-        sub_batch_size = 100  # 10 parallel sub-batches of 100
+        sub_batch_size = 100
+        max_retries = 5
+        retry_delay = 5  # seconds
+
+        failed_sub_batches = []
+
+        def process_sub_batch(sub_batch, sub_index, batch_start_index, attempt=1):
+            docs_with_text = [(doc, doc.get("content", "").strip()) for doc in sub_batch]
+            docs_with_text = [(doc, text) for doc, text in docs_with_text if text]
+
+            if not docs_with_text:
+                print(f"⚠️ Skipping empty/invalid sub-batch {sub_index} in batch starting at {batch_start_index}")
+                return True  # nothing to retry
+
+            docs, _ = zip(*docs_with_text)
+
+            try:
+                embeddings = self.embedding_helper.create_embeddings(docs)
+                records = self.prepare_pinecone_records(docs, embeddings)
+                dense_index.upsert(vectors=records, namespace=self.namespace)
+                print(f"✅ Finished sub-batch {sub_index} of batch starting at {batch_start_index}")
+                return True
+            except Exception as e:
+                print(f"❌ Error in sub-batch {sub_index} of batch {batch_start_index}, attempt {attempt}: {e}")
+                return False
 
         for i in tqdm(range(0, len(corpus), batch_size), desc="📦 Indexing batches"):
             batch = corpus[i:i + batch_size]
-            sub_batches = [batch[j:j + sub_batch_size] for j in range(0, len(batch), sub_batch_size)]
+            sub_batches = [(sub_batch, j, i) for j, sub_batch in enumerate(
+                [batch[k:k + sub_batch_size] for k in range(0, len(batch), sub_batch_size)]
+            )]
 
-            def process_sub_batch(sub_batch, sub_index):
-                texts = [doc.get("content", "").strip() for doc in sub_batch]
-                texts = [t for t in texts if t]
+            retry_queue = [(sb, idx, bidx, 1) for sb, idx, bidx in sub_batches]  # (sub_batch, sub_index, batch_index, attempt)
 
-                if not texts:
-                    print(f"⚠️ Skipping empty/invalid sub-batch {sub_index} in batch starting at {i}")
-                    return
+            while retry_queue:
+                with ThreadPoolExecutor(max_workers=10) as executor:
+                    future_map = {
+                        executor.submit(process_sub_batch, sb, idx, bidx, attempt): (sb, idx, bidx, attempt)
+                        for sb, idx, bidx, attempt in retry_queue
+                    }
+                    retry_queue = []  # clear for next round
 
-                try:
-                    embeddings = self.embedding_helper.create_embeddings(sub_batch)
-                    records = self.prepare_pinecone_records(sub_batch, embeddings)
-                    dense_index.upsert(vectors=records, namespace=self.namespace)
-                    print(f"✅ Finished sub-batch {sub_index} of batch starting at {i}")
-                except Exception as e:
-                    print(f"❌ Error in sub-batch {sub_index} of batch {i}: {e}")
-                    time.sleep(5)
+                    for future in as_completed(future_map):
+                        sb, idx, bidx, attempt = future_map[future]
+                        try:
+                            success = future.result()
+                            if not success:
+                                if attempt < max_retries:
+                                    time.sleep(retry_delay)
+                                    retry_queue.append((sb, idx, bidx, attempt + 1))
+                                else:
+                                    failed_sub_batches.append((sb, idx, bidx))
+                        except Exception as e:
+                            print(f"❌ Unexpected error in sub-batch {idx} of batch {bidx}: {e}")
+                            if attempt < max_retries:
+                                time.sleep(retry_delay)
+                                retry_queue.append((sb, idx, bidx, attempt + 1))
+                            else:
+                                failed_sub_batches.append((sb, idx, bidx))
 
-            with ThreadPoolExecutor(max_workers=10) as executor:
-                futures = [
-                    executor.submit(process_sub_batch, sub_batches[j], j)
-                    for j in range(len(sub_batches))
-                ]
-                for future in as_completed(futures):
-                    future.result()  # Raises exceptions if any
+        print(f"✅ Finished indexing with {len(failed_sub_batches)} failed sub-batches.")
 
-        print(f"✅ Successfully indexed {len(corpus)} documents")
-        
+        if failed_sub_batches:
+            print("⛔ The following sub-batches failed after max retries:")
+            for _, sub_index, batch_index in failed_sub_batches:
+                print(f"   - Sub-batch {sub_index} of batch starting at {batch_index}")
+
+            
     
     
     def retrieve(self, query: str, top_k: int = 10):

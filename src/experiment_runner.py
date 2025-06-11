@@ -5,8 +5,8 @@ from benchmark_datasets._benchmark_dataset import BenchmarkDataset
 from datastores._datastore import DataStore
 
 class ExperimentRunner:
-    def __init__(self, dataset: BenchmarkDataset, datastore: DataStore, retriever: Retriever, evaluator: Evaluator, corpus_size: int = 200000):
-        self.corpus_size = corpus_size
+    def __init__(self, dataset: BenchmarkDataset, datastore: DataStore, retriever: Retriever, evaluator: Evaluator, max_corpus_size: int = 200000):
+        self.max_corpus_size = max_corpus_size
         self.datastore = datastore
         self.retriever = retriever
         self.evaluator = evaluator
@@ -31,7 +31,7 @@ class ExperimentRunner:
                 "id": doc_id,
                 "content": f"{doc.get('title', '')}. {doc.get('text', '')}"
             }
-            for doc_id, doc in corpus_items[:self.corpus_size]
+            for doc_id, doc in corpus_items[:self.max_corpus_size]
         ]
         print(f"Documents: {documents[0]} {len(documents)}")
         
@@ -44,10 +44,12 @@ class ExperimentRunner:
 
         # print(f"Sample query IDs: {list(self.dataset.queries.keys())[:5]}")
         # Index documents
-        # self.datastore.index_corpus(documents[:self.corpus_size])
+        print(f"Corpus size: {len(self.dataset.corpus)}")
+        print(f"Indexing documents: {self.max_corpus_size} ")
+        self.datastore.index_corpus(documents[:self.max_corpus_size])
         
         # Evaluate the retriever
-        self.evaluator.evaluate(self.retriever, self.dataset, self.corpus_size)
+        # self.evaluator.evaluate(self.retriever, self.dataset, self.max_corpus_size)
 
 
 
