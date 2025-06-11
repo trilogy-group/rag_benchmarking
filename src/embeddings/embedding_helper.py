@@ -7,7 +7,6 @@ from embeddings.modern_bert_embedding import ModernBERTEmbedding
 from typing import List, Dict, Any
 
 class EmbeddingHelper:
-    print(f"EmbeddingHelper initializing")
     def __init__(self, model_name: str):
         if model_name in [e.value for e in OpenAIEmbeddingModel]:
             self.embedding_model = OpenAIEmbedding(model_name)

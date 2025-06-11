@@ -35,6 +35,7 @@ pymilvus = "^2.5.10"
 html2text = "^2025.4.15"
 bs4 = "^0.0.2"
 tiktoken = "^0.9.0"
+inquirerpy = "^0.3.4"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
