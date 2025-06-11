@@ -9,6 +9,7 @@ from embeddings.embedding_models import PineconeNativeEmbeddingModel
 from openai import AzureOpenAI
 from embeddings.embedding_helper import EmbeddingHelper 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import json
 
 
 
@@ -23,6 +24,7 @@ class PineconeDatastore(DataStore):
         self.namespace = namespace
         self.embedding_helper = EmbeddingHelper(self.text_embedding_model)
         self.vector_size = self.embedding_helper.get_embedding_size()  
+        
         print(f"🔍 Vector size: {self.vector_size}")
         self.create_index()
 
@@ -94,7 +96,7 @@ class PineconeDatastore(DataStore):
         if not corpus:
             print("⚠️ Empty corpus provided. Skipping indexing.")
             return
-        
+    
         dense_index = self.pinecone_client.Index(self.index_name)
 
         batch_size = 90
@@ -115,64 +117,25 @@ class PineconeDatastore(DataStore):
         stats = dense_index.describe_index_stats()
         print(f"✅ Index stats: {stats}")
 
-    def index_corpus(self, corpus: List[Dict[str, Any]]):
+    def index_corpus(self, embeddings_file_path: str, corpus: List[Dict[str, Any]]):
         if self.is_native_embedding_model(self.text_embedding_model):
             self.index_corpus_pinecone_native_embedding(corpus)
         else:
-            self.index_corpus_custom_embedding(corpus)
+            self.index_corpus_custom_embedding(embeddings_file_path, corpus)
 
-    # def index_corpus_custom_embedding(self, corpus: List[Dict[str, Any]]):
-    #     if not corpus:
-    #         print("⚠️ Empty corpus provided. Skipping indexing.")
-    #         return
-
-    #     dense_index = self.pinecone_client.Index(self.index_name)
-    #     batch_size = 1000
-    #     sub_batch_size = 100  # 10 parallel sub-batches of 100
-
-    #     for i in tqdm(range(0, len(corpus), batch_size), desc="📦 Indexing batches"):
-    #         batch = corpus[i:i + batch_size]
-    #         sub_batches = [batch[j:j + sub_batch_size] for j in range(0, len(batch), sub_batch_size)]
-
-    #         def process_sub_batch(sub_batch, sub_index):
-    #             texts = [doc.get("content", "").strip() for doc in sub_batch]
-    #             texts = [t for t in texts if t]
-
-    #             if not texts:
-    #                 print(f"⚠️ Skipping empty/invalid sub-batch {sub_index} in batch starting at {i}")
-    #                 return
-
-    #             try:
-    #                 embeddings = self.embedding_helper.create_embeddings(sub_batch)
-    #                 records = self.prepare_pinecone_records(sub_batch, embeddings)
-    #                 dense_index.upsert(vectors=records, namespace=self.namespace)
-    #                 print(f"✅ Finished sub-batch {sub_index} of batch starting at {i}")
-    #             except Exception as e:
-    #                 print(f"❌ Error in sub-batch {sub_index} of batch {i}: {e}")
-    #                 time.sleep(5)
-
-    #         with ThreadPoolExecutor(max_workers=10) as executor:
-    #             futures = [
-    #                 executor.submit(process_sub_batch, sub_batches[j], j)
-    #                 for j in range(len(sub_batches))
-    #             ]
-    #             for future in as_completed(futures):
-    #                 future.result()  # Raises exceptions if any
-
-    #     print(f"✅ Successfully indexed {len(corpus)} documents")
-
-    def index_corpus_custom_embedding(self, corpus: List[Dict[str, Any]]):
+    def index_corpus_custom_embedding(self, embeddings_file_path: str, corpus: List[Dict[str, Any]]):
         if not corpus:
             print("⚠️ Empty corpus provided. Skipping indexing.")
             return
 
         dense_index = self.pinecone_client.Index(self.index_name)
         batch_size = 1000
-        sub_batch_size = 100
+        sub_batch_size = 96
         max_retries = 5
         retry_delay = 5  # seconds
 
         failed_sub_batches = []
+
 
         def process_sub_batch(sub_batch, sub_index, batch_start_index, attempt=1):
             docs_with_text = [(doc, doc.get("content", "").strip()) for doc in sub_batch]
@@ -188,11 +151,13 @@ class PineconeDatastore(DataStore):
                 embeddings = self.embedding_helper.create_embeddings(docs)
                 records = self.prepare_pinecone_records(docs, embeddings)
                 dense_index.upsert(vectors=records, namespace=self.namespace)
+                self.append_records_to_file(docs, embeddings, embeddings_file_path)
                 print(f"✅ Finished sub-batch {sub_index} of batch starting at {batch_start_index}")
                 return True
             except Exception as e:
                 print(f"❌ Error in sub-batch {sub_index} of batch {batch_start_index}, attempt {attempt}: {e}")
                 return False
+            
 
         for i in tqdm(range(0, len(corpus), batch_size), desc="📦 Indexing batches"):
             batch = corpus[i:i + batch_size]
@@ -235,8 +200,6 @@ class PineconeDatastore(DataStore):
             for _, sub_index, batch_index in failed_sub_batches:
                 print(f"   - Sub-batch {sub_index} of batch starting at {batch_index}")
 
-            
-    
     
     def retrieve(self, query: str, top_k: int = 10):
         pass

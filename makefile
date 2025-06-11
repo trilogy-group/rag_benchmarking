@@ -1,23 +1,41 @@
-# Makefile for running experiment functions via Poetry with src layout
+.PHONY: download download_index evaluate full shell clean
 
-PYTHON=poetry run python
-SCRIPT=main
-PYTHONPATH=src
+# Default experiment name (can be overridden)
+EXP ?= QDRANT_FRAME_GEMINI_001_GPT_4O
 
-.PHONY: run_experiment
-run_experiment:
-	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c "from $(SCRIPT) import run_experiment; run_experiment()"
+# Run interactive shell
+shell:
+	@echo "=== [Shell] Starting interactive experiment shell ==="
+	poetry run python src/shell.py
 
-.PHONY: download_dataset
-download_dataset:
-ifndef DATASET
-	$(error DATASET is not set. Use 'make download_dataset DATASET=your_dataset_name')
-endif
-	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c "from $(SCRIPT) import download_dataset; download_dataset('$(DATASET)')"
+# Download only the dataset
+download:
+	@echo "=== [Download] Dataset for experiment: $(EXP) ==="
+	poetry run python src/main.py --task download --experiment $(EXP)
 
-.PHONY: download_and_index_dataset
-download_and_index_dataset:
-ifndef DATASET
-	$(error DATASET is not set. Use 'make download_and_index_dataset DATASET=your_dataset_name')
-endif
-	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c "from $(SCRIPT) import download_and_index_dataset; download_and_index_dataset('$(DATASET)')"
+# Download and index the dataset
+download_index:
+	@echo "=== [Download + Index] Dataset for experiment: $(EXP) ==="
+	poetry run python src/main.py --task download_index --experiment $(EXP)
+
+# Run evaluation only
+evaluate:
+	@echo "=== [Evaluate] Running evaluation for experiment: $(EXP) ==="
+	poetry run python src/main.py --task evaluate --experiment $(EXP)
+
+# Full experiment: download, index, and evaluate
+full:
+	@echo "=== [Full] Running complete pipeline for experiment: $(EXP) ==="
+	poetry run python src/main.py --task full --experiment $(EXP)
+
+# Clean up temporary files
+clean:
+	@echo "=== [Clean] Removing temporary files ==="
+	@rm -rf __pycache__ *.pyc *.csv
+
+metrics:
+	@echo "=== [Metrics] Calculating metrics for experiment: $(EXP) ==="
+	poetry run python src/metrics.py 
+
+
+

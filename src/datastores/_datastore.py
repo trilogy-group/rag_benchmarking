@@ -1,27 +1,83 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
+import os
+import json
+import jsonlines
 
 class DataStore:
-    def index(self, documents: List[str], ids: List[str] = None) -> None:
+    def index_corpus(self, dataset_name: str, documents: List[str], ids: List[str] = None) -> None:
         """
         Indexes a list of documents. Optionally takes document IDs.
         """
         raise NotImplementedError
+    
+    
+    # def load_precomputed_embeddings(self, file_path: str) -> Dict[str, Dict[str, Any]]:
+    #     if not os.path.exists(file_path):
+    #         print(f"⚠️ No precomputed embeddings at: {file_path}")
+    #         return {}
 
-    def search(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
-        """
-        Searches for the top_k most similar documents to the query.
-        Returns a list of (document_text, score).
-        """
-        raise NotImplementedError
+    #     print(f"📥 Loading precomputed embeddings from {file_path}")
+    #     id_to_record = {}
+    #     with open(file_path, "r") as f:
+    #         for line in f:
+    #             try:
+    #                 record = json.loads(line.strip())
+    #                 if all(k in record for k in ("id", "text", "embedding", "metadata")):
+    #                     id_to_record[record["id"]] = record
+    #                 else:
+    #                     print(f"⚠️ Skipping malformed record: {record}")
+    #             except json.JSONDecodeError as e:
+    #                 print(f"❌ Error parsing line: {e}")
+    #     return id_to_record
 
-    def clear(self) -> None:
-        """
-        Clears all indexed documents.
-        """
-        raise NotImplementedError
+    def load_precomputed_embeddings(self, file_path: str) -> Dict[str, Dict[str, Any]]:    
+        if not os.path.exists(file_path):
+            print(f"⚠️ No precomputed embeddings at: {file_path}")
+            return {}
 
-    def name(self) -> str:
+        print(f"📥 Loading precomputed embeddings from {file_path}")
+        id_to_record = {}
+        bad_lines = 0
+        total = 0
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            for i, line in enumerate(f, start=1):
+                total += 1
+                try:
+                    record = json.loads(line.strip())
+                    if all(k in record for k in ("id", "text", "embedding", "metadata")):
+                        id_to_record[record["id"]] = record
+                    else:
+                        print(f"⚠️ Skipping line {i}: missing required fields")
+                        bad_lines += 1
+                except json.JSONDecodeError as e:
+                    print(f"❌ Skipping line {i}: invalid JSON ({e})")
+                    bad_lines += 1
+
+        print(f"✅ Loaded {len(id_to_record)} valid records")
+        if bad_lines:
+            print(f"⚠️ Skipped {bad_lines} malformed lines out of {total}")
+
+        return id_to_record
+    
+    def append_records_to_file(
+        self,
+        docs: List[Dict[str, Any]],
+        embeddings: List[List[float]],
+        file_path: str
+    ):
         """
-        Returns the name of the vector store (for logging and metrics).
+        Appends embedded documents to a JSONL file in a neutral format.
+        Each line is a JSON object with {id, text, metadata, embedding}.
         """
-        raise NotImplementedError
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        with open(file_path, "a") as f:
+            for doc, vector in zip(docs, embeddings):
+                json_record = {
+                    "id": doc["id"],
+                    "text": doc.get("content", ""),
+                    "metadata": {k: v for k, v in doc.items() if k not in ["id", "content"]},
+                    "embedding": vector,
+                }
+                f.write(json.dumps(json_record) + "\n")

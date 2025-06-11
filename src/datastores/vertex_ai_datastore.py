@@ -190,7 +190,7 @@ class VertexAiDatastore(DataStore):
         print(f"Conversion complete. {len(corpus)} files saved in {output_dir}")
     
         
-    def index_corpus(self, corpus: List[Dict[str, Any]], chunk_size: int = 1024, chunk_overlap: int = 128):
+    def index_corpus(self, dataset_name: str, corpus: List[Dict[str, Any]], chunk_size: int = 1024, chunk_overlap: int = 128):
         local_output_dir = f"./data/vertex_ai_corpus/{self.corpus_name}"
         if not corpus:
             print("⚠️ Empty corpus provided. Skipping indexing.")

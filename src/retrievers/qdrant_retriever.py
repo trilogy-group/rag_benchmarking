@@ -17,7 +17,8 @@ class QdrantRetriever(Retriever):
 
         self.qdrant_client = QdrantClient(
             url=os.getenv("QDRANT_CLOUD_URL"),
-            api_key=os.getenv("QDRANT_API_KEY")
+            api_key=os.getenv("QDRANT_API_KEY"),
+            timeout=30.0
         )
 
         # OpenAI setup
@@ -27,13 +28,9 @@ class QdrantRetriever(Retriever):
 
     def retrieve(self, query: str, top_k: int = 10) -> Dict[str, float]:
         try:
-            print(f"🔍 Embedding query: '{query}' using model '{self.text_embedding_model}'")
 
             embedding_helper = EmbeddingHelper(self.text_embedding_model)
             query_vector = embedding_helper.create_embeddings([{"content": query}])[0]
-
-            print(f"📡 Performing Qdrant search in collection: {self.index_name}")
-            # print(f"Query vector: {query_vector}")
 
             results = self.qdrant_client.search(
                 collection_name=self.index_name,
@@ -41,11 +38,8 @@ class QdrantRetriever(Retriever):
                 limit=top_k
             )
 
-            # print(f"Results: {results}")
-            print(f"Qdrant returned {len(results)} hits")
             hits = {hit.payload["doc_id"] or hit.id: hit.score for hit in results}
 
-            print(f"Retrieved {len(hits)} chunks from Qdrant")
             return hits
 
         except Exception as e:

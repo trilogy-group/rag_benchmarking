@@ -34,8 +34,10 @@ class ExperimentName(Enum):
     AZURE_FRAME_3_LARGE_GPT_4O = "azure-frame-3-large-gpt-4o"
     AZURE_RAGTRUTH_3_LARGE_GPT_4O = "azure-ragtruth-3-large-gpt-4o"
     AZURE_HOTPOTQA_3_LARGE_GPT_4O = "azure-hotpotqa-3-large-gpt-4o"
+    AZURE_MS_MARCO_3_LARGE_GPT_4O = "azure-ms-marco-3-large-gpt-4o"
     PINECONE_FRAME_LLAMAV2_GPT_4O = "pinecone-frame-llamav2-gpt-4o"
     PINECONE_FRAME_E5LARGE_GPT_4O = "pinecone-frame-e5large-gpt-4o"
+    PINECONE_BEIR_NQ_E5LARGE_GPT_4O = "pinecone-beir-nq-e5large-gpt-4o"
     PINECONE_BEIR_COVID_LLAMAV2_GPT_4O = "pinecone-beir-covid-llamav2-gpt-4o"
     PINECONE_BEIR_SCIDOCS_LLAMAV2_GPT_4O = "pinecone-beir-scidocs-llamav2-gpt-4o"
     PINECONE_BEIR_SCIDOCS_E5LARGE_GPT_4O = "pinecone-beir-scidocs-e5large-gpt-4o"    
@@ -46,6 +48,12 @@ class ExperimentName(Enum):
     PINECONE_FRAME_GEMINI_001_GPT_4O = "pinecone-frame-gemini-001-gpt-4o"
     PINECONE_FRAME_GEMINI_EXP_03_07_GPT_4O = "pinecone-frame-gemini-exp-03-07-gpt-4o"
     PINECONE_FRAME_STELLA_1_5B_V5_GPT_4O = "pinecone-frame-stella-1-5b-v5-gpt-4o"
+    PINECONE_HOTPOTQA_3_LARGE_GPT_4O = "pinecone-hotpotqa-3-large-gpt-4o"
+    PINECONE_HOTPOTQA_GEMINI_001_GPT_4O = "pinecone-hotpotqa-gemini-001-gpt-4o"
+    PINECONE_MS_MARCO_3_LARGE_GPT_4O = "pinecone-ms-marco-3-large-gpt-4o"
+    PINECONE_MS_MARCO_GEMINI_001_GPT_4O = "pinecone-ms-marco-gemini-001-gpt-4o"
+    PINECONE_NIAH_3_LARGE_GPT_4O = "pinecone-niah-3-large-gpt-4o"
+    PINECONE_BEIR_NQ_STELLA_1_5B_V5_GPT_4O = "pinecone-beir-nq-stella-1-5b-v5-gpt-4o"
     PINECONE_FRAME_MODERN_BERT_LARGE_GPT_4O = "pinecone-frame-modern-bert-large-gpt-4o"
     QDRANT_BEIR_COVID_3_LARGE_GPT_4O = "qdrant-beir-covid-3-large-gpt-4o"
     QDRANT_BEIR_SCIDOCS_3_LARGE_GPT_4O = "qdrant-beir-scidocs-3-large-gpt-4o"
@@ -61,10 +69,9 @@ class ExperimentName(Enum):
     QDRANT_MS_MARCO_3_LARGE_GPT_4O = "qdrant-ms-marco-3-large-gpt-4o"
     QDRANT_MS_MARCO_GEMINI_001_GPT_4O = "qdrant-ms-marco-gemini-001-gpt-4o"
     QDRANT_NIAH_3_LARGE_GPT_4O = "qdrant-niah-3-large-gpt-4o"
+    QDRANT_BEIR_NQ_GEMINI_001_GPT_4O = "qdrant-beir-nq-gemini-001-gpt-4o"
     VERTEX_AI_FRAME_TEXT_EMBEDDING_005_GPT_4O = "vertex-ai-frame-text-embedding-005-gpt-4o"
     VERTEX_AI_FRAME_ML_E5_LARGE_GPT_4O = "vertex-ai-frame-ml-e5-large-gpt-4o"
-
-
     
 
 class ExperimentConfig(BaseModel):
@@ -78,6 +85,7 @@ class ExperimentConfig(BaseModel):
     text_embedding_model: str
     openai_model: str
     max_corpus_size: int
+    max_query_count: int
 
     class Config:
         arbitrary_types_allowed = True
@@ -96,7 +104,8 @@ experiments: List[ExperimentConfig] = [
         experiment_runner=ExperimentRunner,
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.AZURE_BEIR_SCIDOCS_3_LARGE_GPT_4O,
@@ -108,7 +117,8 @@ experiments: List[ExperimentConfig] = [
         dataset=BeirDataset,
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.AZURE_BEIR_NQ_3_LARGE_GPT_4O,
@@ -120,7 +130,8 @@ experiments: List[ExperimentConfig] = [
         dataset=BeirDataset,
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.AZURE_BEIR_SCIDOCS_ADA_002_GPT_4O,
@@ -132,7 +143,8 @@ experiments: List[ExperimentConfig] = [
         dataset=BeirDataset,
         text_embedding_model="text-embedding-ada-002",
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.AZURE_FRAME_3_LARGE_GPT_4O,
@@ -144,7 +156,8 @@ experiments: List[ExperimentConfig] = [
         dataset=FrameDataset,
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.AZURE_RAGTRUTH_3_LARGE_GPT_4O,
@@ -156,7 +169,8 @@ experiments: List[ExperimentConfig] = [
         dataset=RagTruthDataset,  # <- Use the new dataset class
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.AZURE_HOTPOTQA_3_LARGE_GPT_4O.value,
@@ -168,7 +182,21 @@ experiments: List[ExperimentConfig] = [
         dataset_name="test",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.AZURE_MS_MARCO_3_LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=AzureAISearchRetriever,
+        evaluator=FrameEvaluator,
+        datastore=AzureAISearchStore,
+        dataset=MSMarcoDataset,
+        dataset_name="default",
+        text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_FRAME_LLAMAV2_GPT_4O.value,
@@ -180,7 +208,8 @@ experiments: List[ExperimentConfig] = [
         dataset=FrameDataset,
         text_embedding_model=PineconeNativeEmbeddingModel.LLAMA_V2.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_BEIR_COVID_LLAMAV2_GPT_4O.value,
@@ -192,7 +221,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="trec-covid",
         text_embedding_model=PineconeNativeEmbeddingModel.LLAMA_V2.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_BEIR_NQ_3_LARGE_GPT_4O.value,
@@ -204,7 +234,21 @@ experiments: List[ExperimentConfig] = [
         dataset_name="nq",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_BEIR_NQ_E5LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=BEIREvaluator,
+        datastore=PineconeDatastore,
+        dataset=BeirDataset,
+        dataset_name="nq",
+        text_embedding_model=PineconeNativeEmbeddingModel.MULTILINGUAL_E5_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_BEIR_NQ_GEMINI_001_GPT_4O.value,
@@ -216,7 +260,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="nq",
         text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_BEIR_SCIDOCS_LLAMAV2_GPT_4O.value,
@@ -228,7 +273,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="scidocs",
         text_embedding_model=PineconeNativeEmbeddingModel.LLAMA_V2.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_FRAME_E5LARGE_GPT_4O.value,
@@ -240,7 +286,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=PineconeNativeEmbeddingModel.MULTILINGUAL_E5_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_BEIR_SCIDOCS_E5LARGE_GPT_4O.value,
@@ -252,7 +299,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="scidocs",
         text_embedding_model=PineconeNativeEmbeddingModel.MULTILINGUAL_E5_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_FRAME_3_LARGE_GPT_4O.value,
@@ -264,7 +312,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_FRAME_COHERE_V4_GPT_4O.value,
@@ -276,7 +325,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_FRAME_GEMINI_001_GPT_4O.value,
@@ -288,7 +338,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_FRAME_GEMINI_EXP_03_07_GPT_4O.value,
@@ -300,7 +351,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=GeminiEmbeddingModel.GEMINI_EXP_03_07.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.PINECONE_FRAME_STELLA_1_5B_V5_GPT_4O.value,
@@ -312,9 +364,74 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=StellaEmbeddingModel.STELLA_1_5B_V5.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
-
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_BEIR_NQ_STELLA_1_5B_V5_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=BEIREvaluator,
+        datastore=PineconeDatastore,
+        dataset=BeirDataset,
+        dataset_name="nq",
+        text_embedding_model=StellaEmbeddingModel.STELLA_1_5B_V5.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_HOTPOTQA_3_LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=FrameEvaluator,
+        datastore=PineconeDatastore,
+        dataset=HotpotQADataset,
+        dataset_name="test",
+        text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_HOTPOTQA_GEMINI_001_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=FrameEvaluator,
+        datastore=PineconeDatastore,
+        dataset=HotpotQADataset,
+        dataset_name="test",
+        text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_MS_MARCO_3_LARGE_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=FrameEvaluator,
+        datastore=PineconeDatastore,
+        dataset=MSMarcoDataset,
+        dataset_name="default",
+        text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_MS_MARCO_GEMINI_001_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=FrameEvaluator,
+        datastore=PineconeDatastore,
+        dataset=MSMarcoDataset,
+        dataset_name="default",
+        text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_BEIR_COVID_3_LARGE_GPT_4O.value,
         k_values=[1, 3, 5, 10],
@@ -325,7 +442,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="trec-covid",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_BEIR_SCIDOCS_3_LARGE_GPT_4O.value,
@@ -337,7 +455,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="scidocs",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_BEIR_SCIDOCS_COHERE_V4_GPT_4O.value,
@@ -349,7 +468,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="scidocs",
         text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_FRAME_3_LARGE_GPT_4O.value,
@@ -361,7 +481,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_FRAME_COHERE_V4_GPT_4O.value,
@@ -373,7 +494,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_FRAME_GEMINI_001_GPT_4O.value,
@@ -385,7 +507,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_FRAME_GEMINI_EXP_03_07_GPT_4O.value,
@@ -397,7 +520,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=GeminiEmbeddingModel.GEMINI_EXP_03_07.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_FRAME_STELLA_1_5B_V5_GPT_4O.value,
@@ -409,7 +533,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=StellaEmbeddingModel.STELLA_1_5B_V5.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_FRAME_MODERN_BERT_LARGE_GPT_4O.value,
@@ -421,7 +546,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=ModernBERTEmbeddingModel.MODERN_BERT_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_HOTPOTQA_3_LARGE_GPT_4O.value,
@@ -433,7 +559,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="test",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_HOTPOTQA_GEMINI_001_GPT_4O.value,
@@ -445,7 +572,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="test",
         text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.VERTEX_AI_FRAME_TEXT_EMBEDDING_005_GPT_4O.value,
@@ -457,7 +585,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=GeminiEmbeddingModel.TEXT_EMBEDDING_005.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.VERTEX_AI_FRAME_ML_E5_LARGE_GPT_4O.value,
@@ -469,7 +598,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=IntfloatEmbeddingModel.ML_E5_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_MS_MARCO_3_LARGE_GPT_4O.value,
@@ -481,7 +611,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_MS_MARCO_GEMINI_001_GPT_4O.value,
@@ -493,7 +624,8 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
     ExperimentConfig(
         name=ExperimentName.QDRANT_NIAH_3_LARGE_GPT_4O.value,
@@ -505,8 +637,22 @@ experiments: List[ExperimentConfig] = [
         dataset_name="default",
         text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
         openai_model=OpenAIModel.GPT_4O.value,
-        max_corpus_size=200000
+        max_corpus_size=200000,
+        max_query_count=1000
     ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_BEIR_NQ_GEMINI_001_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=FrameEvaluator,
+        datastore=QdrantDatastore,
+        dataset=BeirDataset,
+        dataset_name="nq",
+        text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    )
 ]
 
 def get_experiment_config(name: ExperimentName) -> ExperimentConfig:

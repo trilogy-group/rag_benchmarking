@@ -8,6 +8,7 @@ from datastores._datastore import DataStore
 from embeddings.embedding_helper import EmbeddingHelper
 import uuid
 import concurrent.futures
+import json
 
 class QdrantDatastore(DataStore):
     def __init__(
@@ -70,27 +71,70 @@ class QdrantDatastore(DataStore):
         except ValueError:
             return False
         
-    def index_corpus(self, corpus: List[Dict[str, Any]]):
+    def index_corpus(self, embeddings_file_path: str, corpus: List[Dict[str, Any]]):
         if not corpus:
             print("⚠️ Empty corpus provided. Skipping indexing.")
             return
 
-        print(f"📥 Indexing {len(corpus)} documents to Qdrant collection: {self.collection_name}")
-        batch_size = 50
-        batches = [corpus[i:i + batch_size] for i in range(0, len(corpus), batch_size)]
+        precomputed_map = self.load_precomputed_embeddings(embeddings_file_path)
+
+        to_embed = []
+        embedded_points = []
+
+        for doc in corpus:
+            doc_id = doc["id"]
+            if doc_id in precomputed_map:
+                rec = precomputed_map[doc_id]
+                embedded_points.append(
+                    qdrant_models.PointStruct(
+                        id=str(uuid.UUID(doc_id)) if self._is_valid_uuid(doc_id) else str(uuid.uuid4()),
+                        vector=rec["embedding"],
+                        payload={
+                            "text": rec["text"],
+                            "doc_id": doc_id,
+                            **rec.get("metadata", {})
+                        }
+                    )
+                )
+            else:
+                to_embed.append(doc)
+
+        print(f"✅ {len(embedded_points)} precomputed docs found")
+        print(f"🧠 {len(to_embed)} docs require embedding computation")
+
+        # Index precomputed in batches of 100 with tqdm
+        precomputed_batch_size = 50
+        precomputed_batches = [
+            embedded_points[i:i + precomputed_batch_size]
+            for i in range(0, len(embedded_points), precomputed_batch_size)
+        ]
+
+        if precomputed_batches:
+            print("📦 Indexing precomputed embeddings...")
+            for i, batch in enumerate(tqdm(precomputed_batches, desc="📥 Precomputed batches")):
+                self.qdrant_client.upsert(
+                    collection_name=self.collection_name,
+                    points=batch
+                )
+
+        if not to_embed:
+            return
+
+        # Index new embeddings (computed)
+        compute_batch_size = 50
+        batches = [to_embed[i:i + compute_batch_size] for i in range(0, len(to_embed), compute_batch_size)]
 
         def process_batch(batch_index: int, batch: List[Dict[str, Any]]):
-            texts = [doc.get("content", "").strip() for doc in batch]
-            texts = [t for t in texts if t]
-
-            if not texts:
-                print(f"⚠️ Skipping empty/invalid batch at index {batch_index}")
+            valid_docs = [doc for doc in batch if doc.get("content", "").strip()]
+            if not valid_docs:
+                print(f"⚠️ Skipping empty batch {batch_index}")
                 return False
 
             max_retries = 3
             for attempt in range(1, max_retries + 1):
                 try:
-                    embeddings = self.embedding_helper.create_embeddings(batch)
+                    embeddings = self.embedding_helper.create_embeddings(valid_docs)
+                    self.append_records_to_file(valid_docs, embeddings, embeddings_file_path)
                     points = [
                         qdrant_models.PointStruct(
                             id=str(uuid.UUID(doc["id"])) if self._is_valid_uuid(doc["id"]) else str(uuid.uuid4()),
@@ -101,12 +145,9 @@ class QdrantDatastore(DataStore):
                                 **{k: v for k, v in doc.items() if k not in ["id", "content"]}
                             }
                         )
-                        for doc, embedding in zip(batch, embeddings)
+                        for doc, embedding in zip(valid_docs, embeddings)
                     ]
-                    self.qdrant_client.upsert(
-                        collection_name=self.collection_name,
-                        points=points
-                    )
+                    self.qdrant_client.upsert(collection_name=self.collection_name, points=points)
                     return True
                 except Exception as e:
                     print(f"❌ Batch {batch_index} attempt {attempt} failed: {e}")
@@ -115,65 +156,83 @@ class QdrantDatastore(DataStore):
             return False
 
         successes = 0
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = {
                 executor.submit(process_batch, idx, batch): idx
                 for idx, batch in enumerate(batches)
             }
-            with tqdm(total=len(batches), desc="📦 Indexing batches") as pbar:
+            with tqdm(total=len(batches), desc="📦 Indexing new embeddings") as pbar:
                 for future in concurrent.futures.as_completed(futures):
                     success = future.result()
                     if success:
                         successes += 1
                     pbar.update(1)
 
-        print(f"✅ Indexed {successes}/{len(batches)} batches successfully ({successes * batch_size} documents estimated)")
+        print(f"✅ Indexed {successes}/{len(batches)} batches of new embeddings")
 
-    # def index_corpus(self, corpus: List[Dict[str, Any]]):
+        
+    # def index_corpus(self, dataset_name: str, corpus: List[Dict[str, Any]]):
     #     if not corpus:
     #         print("⚠️ Empty corpus provided. Skipping indexing.")
     #         return
 
     #     print(f"📥 Indexing {len(corpus)} documents to Qdrant collection: {self.collection_name}")
-
     #     batch_size = 50
-    #     for i in tqdm(range(0, len(corpus), batch_size), desc="📦 Indexing batches"):
-    #         batch = corpus[i:i + batch_size]
+    #     batches = [corpus[i:i + batch_size] for i in range(0, len(corpus), batch_size)]
+
+    #     embeddings_file_path = self.get_embeddings_file_path(dataset_name, self.text_embedding_model)
+
+    #     def process_batch(batch_index: int, batch: List[Dict[str, Any]]):
     #         texts = [doc.get("content", "").strip() for doc in batch]
     #         texts = [t for t in texts if t]
 
-    #         print(f"Batch: {batch[0]} {len(batch)}")
-    #         print(f"Texts: {texts[0]} {len(texts)}")
-
     #         if not texts:
-    #             print(f"⚠️ Skipping empty/invalid batch at index {i}")
-    #             continue
+    #             print(f"⚠️ Skipping empty/invalid batch at index {batch_index}")
+    #             return False
 
-    #         try:
-    #             embeddings = self.embedding_helper.create_embeddings(batch)
-    #             points = [
-    #                 qdrant_models.PointStruct(
-    #                     id=str(uuid.UUID(doc["id"])) if self._is_valid_uuid(doc["id"]) else str(uuid.uuid4()),
-    #                     vector=embedding,
-    #                     payload={
-    #                         "text": doc["content"],
-    #                         "doc_id": doc["id"],
-    #                         **{k: v for k, v in doc.items() if k not in ["id", "content"]}
-    #                     }
+    #         max_retries = 3
+    #         for attempt in range(1, max_retries + 1):
+    #             try:
+    #                 embeddings = self.embedding_helper.create_embeddings(batch)
+    #                 points = [
+    #                     qdrant_models.PointStruct(
+    #                         id=str(uuid.UUID(doc["id"])) if self._is_valid_uuid(doc["id"]) else str(uuid.uuid4()),
+    #                         vector=embedding,
+    #                         payload={
+    #                             "text": doc["content"],
+    #                             "doc_id": doc["id"],
+    #                             **{k: v for k, v in doc.items() if k not in ["id", "content"]}
+    #                         }
+    #                     )
+    #                     for doc, embedding in zip(batch, embeddings)
+    #                 ]
+    #                 self.qdrant_client.upsert(
+    #                     collection_name=self.collection_name,
+    #                     points=points
     #                 )
-    #                 for doc, embedding in zip(batch, embeddings)
-    #             ]
+    #                 return True
+    #             except Exception as e:
+    #                 print(f"❌ Batch {batch_index} attempt {attempt} failed: {e}")
+    #                 time.sleep(5)
+    #         print(f"❌ Batch {batch_index} failed after {max_retries} attempts.")
+    #         return False
 
-    #             self.qdrant_client.upsert(
-    #                 collection_name=self.collection_name,
-    #                 points=points
-    #             )
-    #         except Exception as e:
-    #             print(f"❌ Error processing batch {i}-{i + len(batch)}: {e}")
-    #             time.sleep(5)
+    #     successes = 0
+    #     with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+    #         futures = {
+    #             executor.submit(process_batch, idx, batch): idx
+    #             for idx, batch in enumerate(batches)
+    #         }
+    #         with tqdm(total=len(batches), desc="📦 Indexing batches") as pbar:
+    #             for future in concurrent.futures.as_completed(futures):
+    #                 success = future.result()
+    #                 if success:
+    #                     successes += 1
+    #                 pbar.update(1)
 
-    #     print(f"✅ Successfully indexed {len(corpus)} documents")
+    #     print(f"✅ Indexed {successes}/{len(batches)} batches successfully ({successes * batch_size} documents estimated)")
 
+    
 
     def retrieve(self, query: str, top_k: int = 10):
         # Retrieval not yet implemented

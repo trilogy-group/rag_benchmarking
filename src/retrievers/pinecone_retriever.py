@@ -16,8 +16,11 @@ class PineconeRetriever(Retriever):
         self.embedding_helper = EmbeddingHelper(self.text_embedding_model)
 
     def is_native_embedding_model(self, model_name: str) -> bool:
-        return model_name in PineconeNativeEmbeddingModel.__members__
-
+        print(f"🔍 Checking if {model_name} is a native embedding model")
+        is_native = model_name in [model.value for model in PineconeNativeEmbeddingModel]
+        print(f"🔍 {model_name} is a native embedding model: {is_native}")
+        return is_native
+    
 
     def retrieve(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
         if self.is_native_embedding_model(self.text_embedding_model):

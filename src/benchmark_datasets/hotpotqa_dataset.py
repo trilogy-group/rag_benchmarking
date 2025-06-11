@@ -11,6 +11,7 @@ class HotpotQADataset(BenchmarkDataset):
     def __init__(self, dataset_name: str, base_path: str = "./data/benchmark_datasets/hotpotqa", split="validation"):
         self.base_path = pathlib.Path(base_path)
         self.dataset_path = self.base_path / split
+        self.dataset_name = dataset_name
         self.split = split
         self.queries = {}
         self.answers = {}

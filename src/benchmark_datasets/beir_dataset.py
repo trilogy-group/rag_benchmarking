@@ -13,7 +13,8 @@ class BeirDataset(BenchmarkDataset):
 
         self.dataset_name = dataset_name
         self.base_path = pathlib.Path(base_path)
-        self.dataset_path = self.base_path / dataset_name
+        self.dataset_path = self.base_path / f"{self.dataset_name}"
+
 
     def load(self) -> BenchmarkData:
         """

@@ -7,7 +7,7 @@ from datasets import load_dataset, load_from_disk
 from collections import defaultdict
 
 class MSMarcoDataset(BenchmarkDataset):
-    def __init__(self, dataset_name: str = "msmarco", base_path: str = "./data/benchmark_datasets/msmarco", split="validation", max_queries: int = 1000):
+    def __init__(self, dataset_name: str = "validation", base_path: str = "./data/benchmark_datasets/msmarco", split="validation", max_queries: int = 1000):
         self.dataset_name = dataset_name
         self.base_path = pathlib.Path(base_path)
         self.dataset_path = self.base_path / split

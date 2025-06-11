@@ -125,15 +125,15 @@ class AzureAISearchStore(DataStore):
         results = search_client.search(search_text="*")
         return len(list(results))
 
-    def index_corpus(self, documents: List[dict], ids: List[str] = None, batch_size: int = 100) -> None:
-        total = len(documents)
+    def index_corpus(self, corpus: List[dict], ids: List[str] = None, batch_size: int = 100, embeddings_file_path: str = None) -> None:
+        total = len(corpus)
         if total == 0:
             print("No documents to index.")
             return
 
         print(f"Indexing {total} documents to index '{self.index_name}' in batches of {batch_size}.")
 
-        print(f"Documents: {documents[:3]}")
+        print(f"Documents: {corpus[:3]}")
 
         try:
             with SearchIndexingBufferedSender(
@@ -143,7 +143,7 @@ class AzureAISearchStore(DataStore):
             ) as sender:
 
                 for i in tqdm(range(0, total, batch_size), desc="Uploading batches"):
-                    batch = documents[i:i + batch_size]
+                    batch = corpus[i:i + batch_size]
                     print(f"Uploading batch {i // batch_size + 1}: type={type(batch)}")
                     sender.upload_documents(batch)
 

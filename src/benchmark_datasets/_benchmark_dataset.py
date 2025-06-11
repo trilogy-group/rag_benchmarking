@@ -11,6 +11,9 @@ class BenchmarkData(BaseModel):
     relevant_docs: dict
 
 class BenchmarkDataset:
+    def get_embeddings_path(self, embedding_model: str) -> str:
+        return self.base_path / f"{self.dataset_name}/embeddings/{embedding_model}.jsonl"
+
     def load(self) -> BenchmarkData:
         """
         Loads or prepares the dataset for use.

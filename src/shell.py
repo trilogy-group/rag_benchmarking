@@ -1,16 +1,22 @@
-# shell.py
-
 from InquirerPy import prompt
-from experiments import ExperimentName, get_experiment_config
+from experiments import ExperimentName
+from experiments import get_experiment_config
 import subprocess
+import sys
 
 
 def list_experiments():
-    return [e.name for e in ExperimentName]
-
+    return [
+        {"name": f"{idx + 1}. {e.name}", "value": e.name}
+        for idx, e in enumerate(sorted(ExperimentName, key=lambda e: e.name))
+    ]
 
 def list_actions():
-    return ["download", "download_index", "evaluate", "full", "exit"]
+    actions = ["download", "download_index", "evaluate", "full", "metrics", "exit"]
+    return [
+        {"name": f"{idx + 1}. {action}", "value": action}
+        for idx, action in enumerate(actions)
+    ]
 
 
 def main():
@@ -30,6 +36,11 @@ def main():
             print("Exiting interactive shell.")
             break
 
+        if action == "metrics":
+            print(f"\n▶ Running `{action}`\n")
+            subprocess.run([sys.executable, "src/main.py", "--task", action])
+            continue
+
         experiment_prompt = [
             {
                 "type": "list",
@@ -42,7 +53,7 @@ def main():
         experiment = experiment_result["experiment"]
 
         print(f"\n▶ Running `{action}` on experiment: {experiment}\n")
-        subprocess.run(["python", "src/main.py", "--task", action, "--experiment", experiment])
+        subprocess.run([sys.executable, "src/main.py", "--task", action, "--experiment", experiment])
 
 
 if __name__ == "__main__":

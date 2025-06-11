@@ -1,5 +1,5 @@
 from embeddings.openai_embedding import OpenAIEmbedding
-from embeddings.embedding_models import OpenAIEmbeddingModel, CohereEmbeddingModel, GeminiEmbeddingModel, StellaEmbeddingModel, ModernBERTEmbeddingModel
+from embeddings.embedding_models import OpenAIEmbeddingModel, CohereEmbeddingModel, GeminiEmbeddingModel, StellaEmbeddingModel, ModernBERTEmbeddingModel, PineconeNativeEmbeddingModel
 from embeddings.gemini_embedding import GeminiEmbedding
 from embeddings.cohere_embedding import CohereEmbedding
 from embeddings.stella_embedding import StellaEmbedding
@@ -18,6 +18,8 @@ class EmbeddingHelper:
             self.embedding_model = StellaEmbedding(model_name)
         elif model_name in [e.value for e in ModernBERTEmbeddingModel]:
             self.embedding_model = ModernBERTEmbedding(model_name)
+        elif model_name in [e.value for e in PineconeNativeEmbeddingModel]:
+            self.embedding_model = OpenAIEmbedding(OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE)
         else:
             raise ValueError(f"Invalid embedding model: {model_name}")
         
