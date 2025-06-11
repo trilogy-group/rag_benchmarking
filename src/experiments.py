@@ -30,6 +30,7 @@ class ExperimentName(Enum):
     AZURE_BEIR_COVID_3_LARGE_GPT_4O = "azure-beir-covid-3-large-gpt-4o"
     AZURE_BEIR_SCIDOCS_3_LARGE_GPT_4O = "azure-beir-scidocs-3-large-gpt-4o"
     AZURE_BEIR_SCIDOCS_ADA_002_GPT_4O = "azure-beir-scidocs-ada-002-gpt-4o"
+    AZURE_BEIR_NQ_3_LARGE_GPT_4O = "azure-beir-nq-3-large-gpt-4o"
     AZURE_FRAME_3_LARGE_GPT_4O = "azure-frame-3-large-gpt-4o"
     AZURE_RAGTRUTH_3_LARGE_GPT_4O = "azure-ragtruth-3-large-gpt-4o"
     AZURE_HOTPOTQA_3_LARGE_GPT_4O = "azure-hotpotqa-3-large-gpt-4o"
@@ -100,6 +101,18 @@ experiments: List[ExperimentConfig] = [
     ExperimentConfig(
         name=ExperimentName.AZURE_BEIR_SCIDOCS_3_LARGE_GPT_4O,
         dataset_name="scidocs",
+        k_values=[1, 3, 5, 10],
+        retriever=AzureAISearchRetriever,
+        evaluator=BEIREvaluator,
+        datastore=AzureAISearchStore,
+        dataset=BeirDataset,
+        text_embedding_model=OpenAIEmbeddingModel.TEXT_EMBEDDING_3_LARGE.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.AZURE_BEIR_NQ_3_LARGE_GPT_4O,
+        dataset_name="nq",
         k_values=[1, 3, 5, 10],
         retriever=AzureAISearchRetriever,
         evaluator=BEIREvaluator,

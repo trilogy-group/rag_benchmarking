@@ -17,7 +17,8 @@ def download_and_index_dataset():
 
 def run_experiment():
     # experiment = get_experiment_config(ExperimentName.PINECONE_BEIR_NQ_3_LARGE_GPT_4O)
-    experiment = get_experiment_config(ExperimentName.PINECONE_BEIR_NQ_GEMINI_001_GPT_4O)
+    # experiment = get_experiment_config(ExperimentName.PINECONE_BEIR_NQ_GEMINI_001_GPT_4O)
+    experiment = get_experiment_config(ExperimentName.AZURE_BEIR_NQ_3_LARGE_GPT_4O)
 
     # experiment = get_experiment_config("beir-covid-3-large-gpt-4o")
     # experiment = get_experiment_config("beir-scidocs-3-large-gpt-4o")

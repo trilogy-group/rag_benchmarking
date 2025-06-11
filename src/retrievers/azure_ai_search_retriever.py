@@ -5,12 +5,13 @@ from azure.core.credentials import AzureKeyCredential
 import os
 
 class AzureAISearchRetriever(Retriever):
-    def __init__(self, index_name: str, agent_name: str, namespace: str):
+    def __init__(self, index_name: str, agent_name: str, namespace: str, text_embedding_model: str):
         self.index_name = index_name
         self.agent_name = agent_name
         self.endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
         self.credential = AzureKeyCredential(os.getenv("AZURE_SEARCH_ADMIN_KEY"))
         self.namespace = namespace
+        self.text_embedding_model = text_embedding_model
         
     def retrieve(self, query: str, top_k: int) -> List[Tuple[str, float]]:
         search_client = SearchClient(endpoint=self.endpoint, index_name=self.index_name, credential=self.credential)
