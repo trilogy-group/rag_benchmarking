@@ -98,9 +98,14 @@ class HotpotQADataset(BenchmarkDataset):
 
         print(f"📁 Saved retrieval format to {output_dir}")
 
+
         self.queries = queries_data
         self.corpus = corpus_data
         self.relevant_docs = qrels_data
+
+        print(f"🔍 Queries: {len(self.queries)}")
+        print(f"🔍 Corpus: {len(self.corpus)}")
+        print(f"🔍 Qrels: {len(self.relevant_docs)}")
 
         return BenchmarkData(
             corpus=self.corpus,

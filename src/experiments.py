@@ -43,6 +43,8 @@ class ExperimentName(Enum):
     PINECONE_BEIR_SCIDOCS_E5LARGE_GPT_4O = "pinecone-beir-scidocs-e5large-gpt-4o"    
     PINECONE_BEIR_NQ_3_LARGE_GPT_4O = "pinecone-beir-nq-3-large-gpt-4o"
     PINECONE_BEIR_NQ_GEMINI_001_GPT_4O = "pinecone-beir-nq-gemini-001-gpt-4o"
+    PINECONE_BEIR_NQ_COHERE_V4_GPT_4O = "pinecone-beir-nq-cohere-v4-gpt-4o"
+    PINECONE_BEIR_NQ_STELLA_1_5B_V5_GPT_4O = "pinecone-beir-nq-stella-1-5b-v5-gpt-4o"
     PINECONE_FRAME_3_LARGE_GPT_4O = "pinecone-frame-3-large-gpt-4o"
     PINECONE_FRAME_COHERE_V4_GPT_4O = "pinecone-frame-cohere-v4-gpt-4o"
     PINECONE_FRAME_GEMINI_001_GPT_4O = "pinecone-frame-gemini-001-gpt-4o"
@@ -50,19 +52,21 @@ class ExperimentName(Enum):
     PINECONE_FRAME_STELLA_1_5B_V5_GPT_4O = "pinecone-frame-stella-1-5b-v5-gpt-4o"
     PINECONE_HOTPOTQA_3_LARGE_GPT_4O = "pinecone-hotpotqa-3-large-gpt-4o"
     PINECONE_HOTPOTQA_GEMINI_001_GPT_4O = "pinecone-hotpotqa-gemini-001-gpt-4o"
+    PINECONE_HOTPOTQA_COHERE_V4_GPT_4O = "pinecone-hotpotqa-cohere-v4-gpt-4o"
     PINECONE_MS_MARCO_3_LARGE_GPT_4O = "pinecone-ms-marco-3-large-gpt-4o"
     PINECONE_MS_MARCO_GEMINI_001_GPT_4O = "pinecone-ms-marco-gemini-001-gpt-4o"
     PINECONE_NIAH_3_LARGE_GPT_4O = "pinecone-niah-3-large-gpt-4o"
-    PINECONE_BEIR_NQ_STELLA_1_5B_V5_GPT_4O = "pinecone-beir-nq-stella-1-5b-v5-gpt-4o"
     PINECONE_FRAME_MODERN_BERT_LARGE_GPT_4O = "pinecone-frame-modern-bert-large-gpt-4o"
     QDRANT_BEIR_COVID_3_LARGE_GPT_4O = "qdrant-beir-covid-3-large-gpt-4o"
     QDRANT_BEIR_SCIDOCS_3_LARGE_GPT_4O = "qdrant-beir-scidocs-3-large-gpt-4o"
     QDRANT_BEIR_SCIDOCS_COHERE_V4_GPT_4O = "qdrant-beir-scidocs-cohere-v4-gpt-4o"
+    QDRANT_BEIR_NQ_COHERE_V4_GPT_4O = "qdrant-beir-nq-cohere-v4-gpt-4o"
     QDRANT_FRAME_3_LARGE_GPT_4O = "qdrant-frame-3-large-gpt-4o"
     QDRANT_FRAME_COHERE_V4_GPT_4O = "qdrant-frame-cohere-v4-gpt-4o"
     QDRANT_FRAME_GEMINI_001_GPT_4O = "qdrant-frame-gemini-001-gpt-4o"
     QDRANT_FRAME_GEMINI_EXP_03_07_GPT_4O = "qdrant-frame-gemini-exp-03-07-gpt-4o"
     QDRANT_FRAME_STELLA_1_5B_V5_GPT_4O = "qdrant-frame-stella-1-5b-v5-gpt-4o"
+    QDRANT_BEIR_NQ_STELLA_1_5B_V5_GPT_4O = "qdrant-beir-nq-stella-1-5b-v5-gpt-4o"
     QDRANT_FRAME_MODERN_BERT_LARGE_GPT_4O = "qdrant-frame-modern-bert-large-gpt-4o"
     QDRANT_HOTPOTQA_3_LARGE_GPT_4O = "qdrant-hotpotqa-3-large-gpt-4o"
     QDRANT_HOTPOTQA_GEMINI_001_GPT_4O = "qdrant-hotpotqa-gemini-001-gpt-4o"
@@ -381,6 +385,19 @@ experiments: List[ExperimentConfig] = [
         max_query_count=1000
     ),
     ExperimentConfig(
+        name=ExperimentName.PINECONE_BEIR_NQ_COHERE_V4_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=BEIREvaluator,
+        datastore=PineconeDatastore,
+        dataset=BeirDataset,
+        dataset_name="nq",
+        text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
         name=ExperimentName.PINECONE_HOTPOTQA_3_LARGE_GPT_4O.value,
         k_values=[1, 3, 5, 10],
         retriever=PineconeRetriever,
@@ -402,6 +419,19 @@ experiments: List[ExperimentConfig] = [
         dataset=HotpotQADataset,
         dataset_name="test",
         text_embedding_model=GeminiEmbeddingModel.GEMINI_001.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.PINECONE_HOTPOTQA_COHERE_V4_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=PineconeRetriever,
+        evaluator=FrameEvaluator,
+        datastore=PineconeDatastore,
+        dataset=HotpotQADataset,
+        dataset_name="test",
+        text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
         openai_model=OpenAIModel.GPT_4O.value,
         max_corpus_size=200000,
         max_query_count=1000
@@ -532,6 +562,32 @@ experiments: List[ExperimentConfig] = [
         dataset=FrameDataset,
         dataset_name="default",
         text_embedding_model=StellaEmbeddingModel.STELLA_1_5B_V5.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_BEIR_NQ_STELLA_1_5B_V5_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=BEIREvaluator,
+        datastore=QdrantDatastore,
+        dataset=BeirDataset,
+        dataset_name="nq",
+        text_embedding_model=StellaEmbeddingModel.STELLA_1_5B_V5.value,
+        openai_model=OpenAIModel.GPT_4O.value,
+        max_corpus_size=200000,
+        max_query_count=1000
+    ),
+    ExperimentConfig(
+        name=ExperimentName.QDRANT_BEIR_NQ_COHERE_V4_GPT_4O.value,
+        k_values=[1, 3, 5, 10],
+        retriever=QdrantRetriever,
+        evaluator=BEIREvaluator,
+        datastore=QdrantDatastore,
+        dataset=BeirDataset,
+        dataset_name="nq",
+        text_embedding_model=CohereEmbeddingModel.COHERE_EMBEDDING_V4.value,
         openai_model=OpenAIModel.GPT_4O.value,
         max_corpus_size=200000,
         max_query_count=1000

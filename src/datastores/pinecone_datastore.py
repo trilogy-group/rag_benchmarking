@@ -99,6 +99,7 @@ class PineconeDatastore(DataStore):
     
         dense_index = self.pinecone_client.Index(self.index_name)
 
+
         batch_size = 90
         for i in tqdm(range(0, len(corpus), batch_size), desc="Indexing batches"):
             try:
@@ -124,6 +125,7 @@ class PineconeDatastore(DataStore):
             self.index_corpus_custom_embedding(embeddings_file_path, corpus)
 
     def index_corpus_custom_embedding(self, embeddings_file_path: str, corpus: List[Dict[str, Any]]):
+        print(f"🔍 Indexing corpus with custom embedding model: {embeddings_file_path} {len(corpus)}")
         if not corpus:
             print("⚠️ Empty corpus provided. Skipping indexing.")
             return

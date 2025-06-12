@@ -61,19 +61,37 @@ class AzureAISearchStore(DataStore):
                 SearchField(name="content", type="Edm.String"),
                 SearchField(name="embedding", type="Collection(Edm.Single)", stored=False,            
                 vector_search_dimensions=self.get_embedding_dimensions(self.embedding_model), 
-                vector_search_profile_name="profile"),
+                vector_search_profile_name="hnsw_text_3_large"),
             ],
             vector_search=VectorSearch(
-                profiles=[VectorSearchProfile(name="profile", algorithm_configuration_name="alg", vectorizer_name="vec")],
+                # profiles=[VectorSearchProfile(name="profile", algorithm_configuration_name="alg", vectorizer_name="vec")],
+                # algorithms=[HnswAlgorithmConfiguration(name="alg")],
+                # vectorizers=[
+                #     AzureOpenAIVectorizer(
+                #         vectorizer_name="vec",
+                #         parameters=AzureOpenAIVectorizerParameters(
+                #             resource_url=self.azure_openai_endpoint,
+                #             api_key=self.azure_openai_api_key,
+                #             model_name=self.embedding_model,
+                #             deployment_name=self.embedding_deployment
+                #         )
+                #     )
+                # ]
+                profiles=[VectorSearchProfile(
+                        name="hnsw_text_3_large", 
+                        algorithm_configuration_name="alg",
+                        vectorizer_name="azure_openai_text_3_large"
+                    )],
+                # profiles=[VectorSearchProfile(name="profile", algorithm_configuration_name="alg", vectorizer_name="vec")],
                 algorithms=[HnswAlgorithmConfiguration(name="alg")],
                 vectorizers=[
                     AzureOpenAIVectorizer(
-                        vectorizer_name="vec",
+                        vectorizer_name="azure_openai_text_3_large",
                         parameters=AzureOpenAIVectorizerParameters(
                             resource_url=self.azure_openai_endpoint,
-                            api_key=self.azure_openai_api_key,
+                            deployment_name=self.embedding_deployment,
                             model_name=self.embedding_model,
-                            deployment_name=self.embedding_deployment
+                            api_key=self.azure_openai_api_key
                         )
                     )
                 ]
@@ -95,6 +113,7 @@ class AzureAISearchStore(DataStore):
     
     def setup_agent(self):
         print(f"Setting up agent {self.agent_name}")
+
         agent = KnowledgeAgent(
             name=self.agent_name,
             models=[
@@ -107,7 +126,7 @@ class AzureAISearchStore(DataStore):
                     )
                 )
             ],
-            target_indexes=[KnowledgeAgentTargetIndex(index_name=self.index_name)]
+            target_indexes=[KnowledgeAgentTargetIndex(index_name=self.index_name, default_reranker_threshold=2.5)]
         )
        
         self.index_client.create_or_update_agent(agent)
