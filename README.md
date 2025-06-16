@@ -16,6 +16,21 @@ poetry install
 cp env.sample .env
 ```
 
+The sample environment file leaves all variables blank. After copying it, create API keys for the providers you plan to use and replace the empty strings.
+
+### Generating API Keys
+
+- **OpenAI** – create a key at <https://platform.openai.com/account/api-keys>.
+- **Azure** – create the required Azure resources (OpenAI and/or Search) in the [Azure Portal](https://portal.azure.com/) and copy the keys from the **Keys and Endpoint** page.
+- **Pinecone** – sign in to <https://app.pinecone.io/> and generate an API key.
+- **Qdrant** – sign up for <https://cloud.qdrant.io/> and create an API key.
+- **Cohere** – go to <https://dashboard.cohere.ai> and generate a key.
+- **Gemini** – obtain a key from <https://aistudio.google.com/app/apikey> (or through Vertex AI if using Google Cloud).
+- **Vertex AI** – create a service account in Google Cloud and download a JSON credentials file, then set the `VERTEX_*` variables accordingly.
+- **Milvus** – acquire your endpoint, username and password from your Milvus or Zilliz Cloud account.
+
+Keep the `.env` file private and never commit it to version control.
+
 The application loads environment variables automatically when running experiments.
 
 ## Using the Interactive Shell
