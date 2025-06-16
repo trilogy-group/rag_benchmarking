@@ -6,6 +6,9 @@ from embeddings.embedding_models import PineconeNativeEmbeddingModel
 from qdrant_client import QdrantClient
 from openai import OpenAI
 from embeddings.embedding_helper import EmbeddingHelper
+import logging
+
+logger = logging.getLogger(__name__)
 
 class QdrantRetriever(Retriever):
     def __init__(self, index_name: str, agent_name: str, namespace: str, text_embedding_model: str):
@@ -43,7 +46,7 @@ class QdrantRetriever(Retriever):
             return hits
 
         except Exception as e:
-            print(f"❌ Qdrant retrieval failed: {e}")
+            logger.error(f"Qdrant retrieval failed: {e}")
             return {}
     
 

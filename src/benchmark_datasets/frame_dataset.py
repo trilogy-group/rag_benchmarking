@@ -9,6 +9,9 @@ from collections import defaultdict
 import requests
 from urllib.parse import urlparse, unquote
 import hashlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 class FrameDataset(BenchmarkDataset):
     def __init__(self, dataset_name: str, base_path:str="./data/benchmark_datasets/frames", split="test"):
@@ -28,14 +31,14 @@ class FrameDataset(BenchmarkDataset):
 
     def load(self) -> BenchmarkData:
         if self.dataset_path.exists():
-            print(f"📁 Loading FRAME dataset from local cache: {self.dataset_path}")
+            logger.info(f"Loading FRAME dataset from local cache: {self.dataset_path}")
             data = load_from_disk(str(self.dataset_path))
         else:
-            print("🌐 Downloading FRAME dataset from Hugging Face...")
+            logger.info("Downloading FRAME dataset from Hugging Face...")
             data = load_dataset("google/frames-benchmark", split=self.split)
             self.dataset_path.parent.mkdir(parents=True, exist_ok=True)
             data.save_to_disk(str(self.dataset_path))
-            print(f"✅ Saved FRAME dataset to: {self.dataset_path}")
+            logger.info(f"Saved FRAME dataset to: {self.dataset_path}")
 
         qrels = defaultdict(dict)
         output_dir = self.base_path / "retrieval_format"
@@ -67,14 +70,14 @@ class FrameDataset(BenchmarkDataset):
         seen_doc_ids = set(corpus_data.keys())
         self.corpus.update(corpus_data)
 
-        print(f"Number of items in dataset: {len(data)}")
+        logger.info(f"Number of items in dataset: {len(data)}")
 
         # The dataset has 824 queries
         if len(qrels_data) < 50:
             for i, item in enumerate(data):
                 qid = f"q{i}"
                 if qid not in qrels_data:
-                    print(f"\n🔍 Query {i}/{len(data)}: {item['Prompt']}")
+                    logger.debug(f"Query {i}/{len(data)}: {item['Prompt']}")
                     self.queries[qid] = item["Prompt"]
                     self.answers[qid] = item["Answer"]
                     queries_data[qid] = item["Prompt"]
@@ -85,7 +88,7 @@ class FrameDataset(BenchmarkDataset):
                     for link in links:
                         title = self.extract_title_from_url(link)
                         url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{title}"
-                        print(f"🌐 Fetching: {url}")
+                        logger.debug(f"Fetching: {url}")
                         max_retries = 3
                         for attempt in range(max_retries):
                             try:
@@ -107,12 +110,12 @@ class FrameDataset(BenchmarkDataset):
                                     qrels_data[qid] = qrels[qid]
                                     break  # Exit the retry loop on success
                                 else:
-                                    print(f"⚠️ Failed with status {response.status_code}: {url}")
+                                    logger.warning(f"Failed with status {response.status_code}: {url}")
                             except Exception as e:
-                                print(f"❌ Attempt {attempt + 1} failed to fetch {link}: {e}")
+                                logger.warning(f"Attempt {attempt + 1} failed to fetch {link}: {e}")
                                 if attempt == max_retries - 1:
-                                    print(f"❌ All retry attempts failed for {link}")
-                                print(f"❌ Failed to fetch {link}: {e}")
+                                    logger.error(f"All retry attempts failed for {link}")
+                                logger.error(f"Failed to fetch {link}: {e}")
 
                     # Write updated state
                     with open(queries_file, "w") as f:
@@ -121,8 +124,8 @@ class FrameDataset(BenchmarkDataset):
                         json.dump(corpus_data, f, indent=2)
                     with open(qrels_file, "w") as f:
                         json.dump(qrels_data, f, indent=2)
-            print(f"✅ Converted {len(self.queries)} queries and {len(self.corpus)} corpus documents")
-        print(f"📁 Saved retrieval format to {output_dir}")
+            logger.info(f"Converted {len(self.queries)} queries and {len(self.corpus)} corpus documents")
+        logger.info(f"Saved retrieval format to {output_dir}")
 
         self.queries = queries_data
         self.corpus = corpus_data

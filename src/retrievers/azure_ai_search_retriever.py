@@ -20,6 +20,9 @@ from azure.search.documents.agent.models import (
 
 
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AzureAISearchRetriever(Retriever):
     def __init__(self, index_name: str, agent_name: str, namespace: str, text_embedding_model: str, openai_model: str="gpt-4o"):
@@ -53,12 +56,12 @@ class AzureAISearchRetriever(Retriever):
             score = result["@search.rerankerScore"] if "@search.rerankerScore" in result else result["@search.score"]
             hits[chunk_id] = score
 
-        print(f"Retrieved {len(hits)} chunks")
+        logger.info(f"Retrieved {len(hits)} chunks")
         return hits
     
     
     def retrieve_agentic(self, query: str, top_k: int) -> List[Tuple[str, float]]:
-        print(f"Retrieving agentic response from agent {self.agent_name}")
+        logger.info(f"Retrieving agentic response from agent {self.agent_name}")
 
         instructions = """
         A Q&A agent that can answer questions about the Earth at night.
@@ -94,7 +97,7 @@ class AzureAISearchRetriever(Retriever):
                 )
             )       
         except Exception as e:
-            print(f"Error retrieving agentic response: {e}")
+            logger.error(f"Error retrieving agentic response: {e}")
             return {}
 
 
@@ -106,7 +109,7 @@ class AzureAISearchRetriever(Retriever):
             score = citation.score if hasattr(citation, "score") else 1.0
             hits[chunk_id] = score
 
-        print(f"Agentic retrieval returned {len(hits)} citations")
+        logger.info(f"Agentic retrieval returned {len(hits)} citations")
         return hits
     
     def retrieve(self, query: str, top_k: int) -> List[Tuple[str, float]]:

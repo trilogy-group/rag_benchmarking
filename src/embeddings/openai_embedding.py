@@ -2,6 +2,9 @@ from typing import List, Dict, Any
 from openai import OpenAI
 import os
 from embeddings._embedding import Embedding
+import logging
+
+logger = logging.getLogger(__name__)
 
 class OpenAIEmbedding(Embedding):
     def __init__(self, model: str):
@@ -18,7 +21,7 @@ class OpenAIEmbedding(Embedding):
     def create_embeddings(self, docs: List[Dict[str, Any]]) -> List[List[float]]:
         texts = [doc["content"] for doc in docs]
 
-        print(f"📡 Generating embeddings for {len(texts)} documents using OpenAI model: {self.model}")
+        logger.info(f"Generating embeddings for {len(texts)} documents using OpenAI model: {self.model}")
         # print(f"Texts: {texts[:5]}")
 
         response = self.openai_client.embeddings.create(input=texts, model=self.model)

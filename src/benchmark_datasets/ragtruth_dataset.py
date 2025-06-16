@@ -3,6 +3,9 @@ from datasets import load_dataset, load_from_disk
 from typing import Dict
 import pathlib
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class RagTruthDataset(BenchmarkDataset):
@@ -20,25 +23,25 @@ class RagTruthDataset(BenchmarkDataset):
 
     def load(self) -> BenchmarkData:
         if self.dataset_path.exists():
-            print(f"📁 Loading RAGTruth dataset from local cache: {self.dataset_path}")
+            logger.info(f"Loading RAGTruth dataset from local cache: {self.dataset_path}")
             ds = load_from_disk(str(self.dataset_path))
         else:
-            print("🌐 Downloading RAGTruth dataset from Hugging Face...")
+            logger.info("Downloading RAGTruth dataset from Hugging Face...")
             ds = load_dataset(self.hf_dataset, self.subset, split=self.split)
             self.dataset_path.parent.mkdir(parents=True, exist_ok=True)
             ds.save_to_disk(str(self.dataset_path))
-            print(f"✅ Saved RAGTruth dataset to: {self.dataset_path}")
+            logger.info(f"Saved RAGTruth dataset to: {self.dataset_path}")
 
             
 
-        print(f"📊 Number of items in dataset: {len(ds)}")
+        logger.info(f"Number of items in dataset: {len(ds)}")
         for idx, row in enumerate(ds):
             doc_id = str(idx)
             self.corpus[doc_id] = {"text": row.get("document", row.get("context", ""))}
             self.queries[doc_id] = row.get("query", row.get("question", ""))
             self.relevant_docs[doc_id] = [doc_id]
 
-        print(f"✅ Loaded {len(self.queries)} queries and {len(self.corpus)} documents")
+        logger.info(f"Loaded {len(self.queries)} queries and {len(self.corpus)} documents")
         return BenchmarkData(
             corpus=self.corpus,
             queries=self.queries,

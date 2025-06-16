@@ -2,6 +2,9 @@ from typing import List, Tuple, Dict, Any
 import os
 import json
 import jsonlines
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DataStore:
     def index_corpus(self, dataset_name: str, documents: List[str], ids: List[str] = None) -> None:
@@ -32,10 +35,10 @@ class DataStore:
 
     def load_precomputed_embeddings(self, file_path: str) -> Dict[str, Dict[str, Any]]:    
         if not os.path.exists(file_path):
-            print(f"⚠️ No precomputed embeddings at: {file_path}")
+            logger.warning(f"No precomputed embeddings at: {file_path}")
             return {}
 
-        print(f"📥 Loading precomputed embeddings from {file_path}")
+        logger.info(f"Loading precomputed embeddings from {file_path}")
         id_to_record = {}
         bad_lines = 0
         total = 0
@@ -48,15 +51,15 @@ class DataStore:
                     if all(k in record for k in ("id", "text", "embedding", "metadata")):
                         id_to_record[record["id"]] = record
                     else:
-                        print(f"⚠️ Skipping line {i}: missing required fields")
+                        logger.warning(f"Skipping line {i}: missing required fields")
                         bad_lines += 1
                 except json.JSONDecodeError as e:
-                    print(f"❌ Skipping line {i}: invalid JSON ({e})")
+                    logger.error(f"Skipping line {i}: invalid JSON ({e})")
                     bad_lines += 1
 
-        print(f"✅ Loaded {len(id_to_record)} valid records")
+        logger.info(f"Loaded {len(id_to_record)} valid records")
         if bad_lines:
-            print(f"⚠️ Skipped {bad_lines} malformed lines out of {total}")
+            logger.warning(f"Skipped {bad_lines} malformed lines out of {total}")
 
         return id_to_record
     

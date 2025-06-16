@@ -11,6 +11,9 @@ import concurrent.futures
 from vertexai.preview import rag
 from google.cloud import storage
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 class VertexAiDatastore(DataStore):
     def __init__(
@@ -51,18 +54,18 @@ class VertexAiDatastore(DataStore):
 
 
     def create_corpus(self):
-        print(f"Creating corpus: {self.corpus_name}")
+        logger.info(f"Creating corpus: {self.corpus_name}")
         for corpus in rag.list_corpora():
             if corpus.display_name == self.corpus_name:
                 self.rag_corpus = corpus
-                print(f"✅ Found existing corpus: {corpus.name}")
+                logger.info(f"Found existing corpus: {corpus.name}")
                 return
         self.rag_corpus = rag.create_corpus(
             display_name=self.corpus_name,
             description=f"A test corpus where we test RAG on the {self.corpus_name} dataset",
             embedding_model_config=self.embedding_model_config,
         )
-        print(f"Corpus created: {self.rag_corpus}")
+        logger.info(f"Corpus created: {self.rag_corpus}")
         
 
     def count_files_in_gcs_bucket(self, gcs_path: str) -> int:
@@ -139,7 +142,7 @@ class VertexAiDatastore(DataStore):
                 attempt += 1
             total_imported += imported
 
-        print(f"{total_imported} files out of {total_num_of_files} imported!")
+        logger.info(f"{total_imported} files out of {total_num_of_files} imported!")
         
     
     def convert_beir_to_rag_corpus(self, corpus: dict[str, dict[str, str]], output_dir: str) -> None:
@@ -187,16 +190,16 @@ class VertexAiDatastore(DataStore):
                 os.makedirs(current_subdir, exist_ok=True)
                 file_count = 0
 
-        print(f"Conversion complete. {len(corpus)} files saved in {output_dir}")
+        logger.info(f"Conversion complete. {len(corpus)} files saved in {output_dir}")
     
         
     def index_corpus(self, dataset_name: str, corpus: List[Dict[str, Any]], chunk_size: int = 1024, chunk_overlap: int = 128):
         local_output_dir = f"./data/vertex_ai_corpus/{self.corpus_name}"
         if not corpus:
-            print("⚠️ Empty corpus provided. Skipping indexing.")
+            logger.warning("Empty corpus provided. Skipping indexing.")
             return
 
-        print(f"📥 Converting and indexing {len(corpus)} documents to Vertex AI RAG corpus: {self.corpus_name}")
+        logger.info(f"Converting and indexing {len(corpus)} documents to Vertex AI RAG corpus: {self.corpus_name}")
 
         # Step 1: Convert to BEIR-style dict format
         beir_format = {doc["id"]: {"title": doc.get("title", ""), "text": doc["content"]} for doc in corpus}
@@ -205,7 +208,7 @@ class VertexAiDatastore(DataStore):
         # self.convert_beir_to_rag_corpus(beir_format, output_dir=local_output_dir)
 
         # Step 3: Upload subdirectories to GCS with progress bar
-        print(f"☁️ Uploading converted files to GCS bucket: {self.gcs_bucket_name}")
+        logger.info(f"Uploading converted files to GCS bucket: {self.gcs_bucket_name}")
         storage_client = storage.Client()
         bucket = storage_client.bucket(self.gcs_bucket_name)
 
@@ -226,10 +229,10 @@ class VertexAiDatastore(DataStore):
                     pbar.update(1)
 
             gcs_paths.append(f"gs://{self.gcs_bucket_name}/{self.bucket_prefix}/{subdir}/")
-            print(f"✅ Uploaded directory {subdir} to GCS")
+            logger.info(f"Uploaded directory {subdir} to GCS")
 
         # Step 4: Import uploaded files into Vertex RAG Engine
-        print(f"📤 Importing {len(gcs_paths)} directories to Vertex RAG corpus: {self.corpus_name}")
+        logger.info(f"Importing {len(gcs_paths)} directories to Vertex RAG corpus: {self.corpus_name}")
         self.import_rag_files_from_gcs(paths=gcs_paths, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
 
