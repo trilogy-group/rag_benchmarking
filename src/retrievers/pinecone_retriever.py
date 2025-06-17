@@ -5,6 +5,9 @@ from pinecone import Pinecone
 from embeddings.embedding_models import PineconeNativeEmbeddingModel
 from embeddings.embedding_helper import EmbeddingHelper
 import openai
+import logging
+
+logger = logging.getLogger(__name__)
 
 class PineconeRetriever(Retriever):
     def __init__(self, index_name: str, agent_name: str, namespace: str, text_embedding_model: str):
@@ -16,9 +19,9 @@ class PineconeRetriever(Retriever):
         self.embedding_helper = EmbeddingHelper(self.text_embedding_model)
 
     def is_native_embedding_model(self, model_name: str) -> bool:
-        print(f"🔍 Checking if {model_name} is a native embedding model")
+        logger.debug(f"Checking if {model_name} is a native embedding model")
         is_native = model_name in [model.value for model in PineconeNativeEmbeddingModel]
-        print(f"🔍 {model_name} is a native embedding model: {is_native}")
+        logger.debug(f"{model_name} is a native embedding model: {is_native}")
         return is_native
     
 
@@ -41,7 +44,7 @@ class PineconeRetriever(Retriever):
             },
         )
         
-        print(f"Pinecone results: {len(response['result']['hits'])}")
+        logger.debug(f"Pinecone results: {len(response['result']['hits'])}")
 
         hits = {}
         for match in response['result']["hits"]:
@@ -49,7 +52,7 @@ class PineconeRetriever(Retriever):
             score = match["_score"]
             hits[doc_id] = score
 
-        print(f"Retrieved {len(hits)} chunks from Pinecone")
+        logger.info(f"Retrieved {len(hits)} chunks from Pinecone")
         return hits
     
     def retrieve_from_custom_index(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
@@ -64,7 +67,7 @@ class PineconeRetriever(Retriever):
                 "top_k": top_k
             }
         )
-        print(f"Pinecone results: {len(response['result']['hits'])}")
+        logger.debug(f"Pinecone results: {len(response['result']['hits'])}")
 
         hits = {}
         for match in response['result']["hits"]:
@@ -72,5 +75,5 @@ class PineconeRetriever(Retriever):
             score = match["_score"]
             hits[doc_id] = score
 
-        print(f"Retrieved {len(hits)} chunks from Pinecone")
+        logger.info(f"Retrieved {len(hits)} chunks from Pinecone")
         return hits

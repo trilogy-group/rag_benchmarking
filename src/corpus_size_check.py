@@ -11,6 +11,9 @@ def check_corpus_sizes(file_paths: list[str]) -> dict[str, dict[str, int]]:
     """
     import json
     from tiktoken import encoding_for_model
+    import logging
+
+    logger = logging.getLogger(__name__)
     
     # Initialize tokenizer
     enc = encoding_for_model("gpt-3.5-turbo")
@@ -18,7 +21,7 @@ def check_corpus_sizes(file_paths: list[str]) -> dict[str, dict[str, int]]:
     file_stats = {}
     
     for file_path in file_paths:
-        print(f"Processing {file_path}...")
+        logger.info(f"Processing {file_path}...")
         max_tokens = 0
         min_tokens = float('inf')
         max_text = ""
@@ -39,7 +42,7 @@ def check_corpus_sizes(file_paths: list[str]) -> dict[str, dict[str, int]]:
                         min_tokens = tokens
                         min_text = obj_str
                 except json.JSONDecodeError:
-                    print(f"Warning: Could not parse line in {file_path}")
+                    logger.warning(f"Could not parse line in {file_path}")
                     continue
                     
         file_stats[file_path] = {
@@ -49,11 +52,11 @@ def check_corpus_sizes(file_paths: list[str]) -> dict[str, dict[str, int]]:
             'max_text': max_text
         }
         
-        print(f"Token stats for {file_path}:")
-        print(f"  Min tokens: {file_stats[file_path]['min_tokens']}")
-        print(f"  Min text example: {min_text[:200]}...")  # Print first 200 chars
-        print(f"  Max tokens: {file_stats[file_path]['max_tokens']}")
-        print(f"  Max text example: {max_text[:200]}...")  # Print first 200 chars
+        logger.info(f"Token stats for {file_path}:")
+        logger.info(f"  Min tokens: {file_stats[file_path]['min_tokens']}")
+        logger.debug(f"  Min text example: {min_text[:200]}...")
+        logger.info(f"  Max tokens: {file_stats[file_path]['max_tokens']}")
+        logger.debug(f"  Max text example: {max_text[:200]}...")
         
     return file_stats
 

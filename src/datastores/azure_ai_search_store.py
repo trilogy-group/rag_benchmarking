@@ -12,6 +12,9 @@ from azure.search.documents.indexes.models import (
 )
 from azure.search.documents import SearchIndexingBufferedSender,SearchClient
 from tqdm import tqdm
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AzureAISearchStore(DataStore):
@@ -21,8 +24,8 @@ class AzureAISearchStore(DataStore):
         self.agent_name = agent_name
         self.openai_model = openai_model
 
-        print(f"Index Name: {self.index_name}")
-        print(f"Agent Name: {self.agent_name}")
+        logger.info(f"Index Name: {self.index_name}")
+        logger.info(f"Agent Name: {self.agent_name}")
         
 
         self.endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
@@ -34,13 +37,13 @@ class AzureAISearchStore(DataStore):
 
         self.index_client = SearchIndexClient(endpoint=self.endpoint, credential=self.credential)
         self.agent_client = KnowledgeAgentRetrievalClient(endpoint=self.endpoint, agent_name=self.agent_name, credential=self.credential)
-        print(f"Endpoint: {self.endpoint}")
+        logger.info(f"Endpoint: {self.endpoint}")
         # print(f"Credential: {self.credential}")
         # print(f"OpenAI API Key: {self.azure_openai_api_key}")
-        print(f"OpenAI Model: {self.openai_model}")
-        print(f"Embedding Model: {self.embedding_model}")
-        print(f"Embedding Deployment: {self.embedding_deployment}")
-        print(f"OpenAI Endpoint: {self.azure_openai_endpoint}")
+        logger.info(f"OpenAI Model: {self.openai_model}")
+        logger.info(f"Embedding Model: {self.embedding_model}")
+        logger.debug(f"Embedding Deployment: {self.embedding_deployment}")
+        logger.debug(f"OpenAI Endpoint: {self.azure_openai_endpoint}")
         self.setup_index()
         # self.setup_agent()
 
@@ -52,7 +55,7 @@ class AzureAISearchStore(DataStore):
         }.get(model_name, 1536)  # default to 1536 if unknown
 
     def setup_index(self):
-        print(f"Setting up index {self.index_name}")
+        logger.info(f"Setting up index {self.index_name}")
 
         index = SearchIndex(
             name=self.index_name,
@@ -109,10 +112,10 @@ class AzureAISearchStore(DataStore):
             )
         )
         self.index_client.create_or_update_index(index)
-        print(f"Index {index} created")
+        logger.info(f"Index {index} created")
     
     def setup_agent(self):
-        print(f"Setting up agent {self.agent_name}")
+        logger.info(f"Setting up agent {self.agent_name}")
 
         agent = KnowledgeAgent(
             name=self.agent_name,
@@ -130,14 +133,14 @@ class AzureAISearchStore(DataStore):
         )
        
         self.index_client.create_or_update_agent(agent)
-        print(f"Agent {self.agent_name} created")
+        logger.info(f"Agent {self.agent_name} created")
 
     def index_corpus_simple(self, documents: List[str], ids: List[str] = None) -> None:
-        print(f"Indexing {len(documents)} documents to index {self.index_name}")
+        logger.info(f"Indexing {len(documents)} documents to index {self.index_name}")
         with SearchIndexingBufferedSender(endpoint=self.endpoint, index_name=self.index_name, credential=self.credential) as sender:
-            print(f"Uploading {len(documents)} documents to index {self.index_name}")
+            logger.debug(f"Uploading {len(documents)} documents to index {self.index_name}")
             sender.upload_documents(documents=documents)
-        print(f"Documents uploaded to index {self.index_name}")
+        logger.info(f"Documents uploaded to index {self.index_name}")
     
     def count_documents(self) -> int:
         search_client = SearchClient(endpoint=self.endpoint, index_name=self.index_name, credential=self.credential)
@@ -147,12 +150,12 @@ class AzureAISearchStore(DataStore):
     def index_corpus(self, corpus: List[dict], ids: List[str] = None, batch_size: int = 100, embeddings_file_path: str = None) -> None:
         total = len(corpus)
         if total == 0:
-            print("No documents to index.")
+            logger.warning("No documents to index.")
             return
 
-        print(f"Indexing {total} documents to index '{self.index_name}' in batches of {batch_size}.")
+        logger.info(f"Indexing {total} documents to index '{self.index_name}' in batches of {batch_size}.")
 
-        print(f"Documents: {corpus[:3]}")
+        logger.debug(f"Documents: {corpus[:3]}")
 
         try:
             with SearchIndexingBufferedSender(
@@ -163,22 +166,22 @@ class AzureAISearchStore(DataStore):
 
                 for i in tqdm(range(0, total, batch_size), desc="Uploading batches"):
                     batch = corpus[i:i + batch_size]
-                    print(f"Uploading batch {i // batch_size + 1}: type={type(batch)}")
+                    logger.debug(f"Uploading batch {i // batch_size + 1}: type={type(batch)}")
                     sender.upload_documents(batch)
 
-            print(f"All {total} documents uploaded successfully to index '{self.index_name}'.")
+            logger.info(f"All {total} documents uploaded successfully to index '{self.index_name}'.")
 
         except Exception as e:
-            print(f"Failed to index documents: {e}")
+            logger.error(f"Failed to index documents: {e}")
 
     def search(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
-        print(f"Searching for {query} in index {self.index_name}")
+        logger.debug(f"Searching for {query} in index {self.index_name}")
         results = self.index_client.search(query=query, top=top_k)
-        print(f"Results: {results}")
+        logger.debug(f"Results: {results}")
         return results
     
     def retrieve(self, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
-        print(f"Retrieving for query: {query}")
+        logger.debug(f"Retrieving for query: {query}")
 
         search_client = SearchClient(endpoint=self.endpoint, index_name=self.index_name, credential=self.credential)
 
@@ -195,5 +198,5 @@ class AzureAISearchStore(DataStore):
             score = result["@search.rerankerScore"] if "@search.rerankerScore" in result else result["@search.score"]
             hits[chunk_id] = score
 
-        print(f"Retrieved {len(hits)} chunks")
+        logger.info(f"Retrieved {len(hits)} chunks")
         return hits

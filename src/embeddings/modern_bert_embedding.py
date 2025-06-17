@@ -4,11 +4,14 @@ from typing import List, Dict, Any
 from sklearn.preprocessing import normalize
 import torch
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ModernBERTEmbedding(Embedding):
     def __init__(self, model: str):
         self.model_name = model
-        print(f"ModernBERT model: {self.model_name}")
+        logger.info(f"ModernBERT model: {self.model_name}")
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model = AutoModel.from_pretrained(self.model_name).eval()
 
@@ -18,7 +21,7 @@ class ModernBERTEmbedding(Embedding):
     def create_embeddings(self, docs: List[Dict[str, Any]]) -> List[List[float]]:
         texts = [doc["content"] for doc in docs]
 
-        print(f"📡 Generating embeddings for {len(texts)} documents using ModernBERT model: {self.model_name}")
+        logger.info(f"Generating embeddings for {len(texts)} documents using ModernBERT model: {self.model_name}")
         # print(f"Texts: {texts[:1]}")
 
         embeddings = []
@@ -32,9 +35,9 @@ class ModernBERTEmbedding(Embedding):
             norm_embedding = normalize([mean_embedding])[0]  # Optional L2 normalization
             embeddings.append(norm_embedding.tolist())
 
-        print(f"Successfully generated {len(embeddings)} embedding vectors.")
+        logger.info(f"Successfully generated {len(embeddings)} embedding vectors.")
 
         if embeddings:
-            print(f"The dimension of each embedding vector is: {len(embeddings[0])}")
+            logger.debug(f"The dimension of each embedding vector is: {len(embeddings[0])}")
 
         return embeddings

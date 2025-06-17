@@ -3,19 +3,23 @@ from dotenv import load_dotenv
 from experiments import get_experiment_config, ExperimentName
 from experiment_runner import ExperimentRunner
 from metrics import consolidate_metrics
+from logging_utils import setup_logging
+import logging
 
 load_dotenv()
+setup_logging()
+logger = logging.getLogger(__name__)
 
 
 def download_dataset(experiment):
-    print(f"Downloading dataset: {experiment.dataset_name}")
+    logger.info(f"Downloading dataset: {experiment.dataset_name}")
     dataset = experiment.dataset(dataset_name=experiment.dataset_name)
     dataset.load()
-    print(f"Downloaded {len(dataset.corpus)} documents and {len(dataset.queries)} queries.")
+    logger.info(f"Downloaded {len(dataset.corpus)} documents and {len(dataset.queries)} queries.")
 
 
 def download_and_index_dataset(experiment):
-    print(f"Downloading and indexing dataset: {experiment.dataset_name}")
+    logger.info(f"Downloading and indexing dataset: {experiment.dataset_name}")
     dataset = experiment.dataset(dataset_name=experiment.dataset_name)
     dataset.load()
     corpus_items = list(dataset.corpus.items())[:experiment.max_corpus_size]
@@ -36,12 +40,12 @@ def download_and_index_dataset(experiment):
         namespace=experiment.name.value
     )
 
-    print(f"Indexing {len(documents)} documents into datastore...")
+    logger.info(f"Indexing {len(documents)} documents into datastore...")
     datastore.index_corpus(embeddings_file_path=dataset.get_embeddings_path(experiment.text_embedding_model), corpus=documents)
 
 
 def evaluate(experiment):
-    print(f"Evaluating retriever on: {experiment.name}")
+    logger.info(f"Evaluating retriever on: {experiment.name}")
     dataset = experiment.dataset(dataset_name=experiment.dataset_name)
     dataset.load()
 
@@ -63,7 +67,7 @@ def metrics():
 def run_experiment():
     experiment = get_experiment_config(ExperimentName.PINECONE_BEIR_NQ_GEMINI_001_GPT_4O)
 
-    print(f"Running full experiment: {experiment.name}\n")
+    logger.info(f"Running full experiment: {experiment.name}\n")
     download_and_index_dataset(experiment)
     evaluate(experiment)
 

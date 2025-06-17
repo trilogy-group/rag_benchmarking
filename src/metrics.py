@@ -1,5 +1,8 @@
 import os
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def consolidate_metrics():
@@ -27,7 +30,7 @@ def consolidate_metrics():
                 metrics['Setup'] = filename  # Keep full filename
                 results.append(metrics)
             except Exception as e:
-                print(f"Error processing {filename}: {e}")
+                logger.error(f"Error processing {filename}: {e}")
 
     # Create final DataFrame
     results_df = pd.DataFrame(results)
@@ -46,4 +49,4 @@ def consolidate_metrics():
     output_path = f"{directory}/compiled_rag_metrics.xlsx"
     results_df.to_excel(output_path, index=False)
 
-    print(f"Metrics Excel file written to: {output_path}")
+    logger.info(f"Metrics Excel file written to: {output_path}")

@@ -9,6 +9,9 @@ from embeddings.embedding_helper import EmbeddingHelper
 import uuid
 import concurrent.futures
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class QdrantDatastore(DataStore):
     def __init__(
@@ -36,7 +39,7 @@ class QdrantDatastore(DataStore):
 
     def create_collection(self):
         if not self.qdrant_client.collection_exists(self.collection_name):
-            print(f"✅ Creating Qdrant collection: {self.collection_name}")
+            logger.info(f"Creating Qdrant collection: {self.collection_name}")
             self.qdrant_client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config=qdrant_models.VectorParams(
@@ -45,13 +48,13 @@ class QdrantDatastore(DataStore):
                 )
             )
         else:
-            print(f"ℹ️ Qdrant collection already exists: {self.collection_name}")
+            logger.info(f"Qdrant collection already exists: {self.collection_name}")
     
     def prepare_qdrant_records(self, corpus: List[Dict[str, Any]], embeddings: List[List[float]]) -> List[Dict[str, Any]]:
         points = []
         for doc, embedding in zip(corpus, embeddings):
-            print(f"Doc: {doc['id']}")
-            print(f"Doc: {doc['content']}")
+            logger.debug(f"Doc: {doc['id']}")
+            logger.debug(f"Doc: {doc['content']}")
             points.append(
                 qdrant_models.PointStruct(
                     id=doc["id"],
@@ -73,7 +76,7 @@ class QdrantDatastore(DataStore):
         
     def index_corpus(self, embeddings_file_path: str, corpus: List[Dict[str, Any]]):
         if not corpus:
-            print("⚠️ Empty corpus provided. Skipping indexing.")
+            logger.warning("Empty corpus provided. Skipping indexing.")
             return
 
         precomputed_map = self.load_precomputed_embeddings(embeddings_file_path)
@@ -99,8 +102,8 @@ class QdrantDatastore(DataStore):
             else:
                 to_embed.append(doc)
 
-        print(f"✅ {len(embedded_points)} precomputed docs found")
-        print(f"🧠 {len(to_embed)} docs require embedding computation")
+        logger.info(f"{len(embedded_points)} precomputed docs found")
+        logger.info(f"{len(to_embed)} docs require embedding computation")
 
         # Index precomputed in batches of 100 with tqdm
         precomputed_batch_size = 50
@@ -110,7 +113,7 @@ class QdrantDatastore(DataStore):
         ]
 
         if precomputed_batches:
-            print("📦 Indexing precomputed embeddings...")
+            logger.info("Indexing precomputed embeddings...")
             for i, batch in enumerate(tqdm(precomputed_batches, desc="📥 Precomputed batches")):
                 self.qdrant_client.upsert(
                     collection_name=self.collection_name,
@@ -127,7 +130,7 @@ class QdrantDatastore(DataStore):
         def process_batch(batch_index: int, batch: List[Dict[str, Any]]):
             valid_docs = [doc for doc in batch if doc.get("content", "").strip()]
             if not valid_docs:
-                print(f"⚠️ Skipping empty batch {batch_index}")
+                logger.warning(f"Skipping empty batch {batch_index}")
                 return False
 
             max_retries = 3
@@ -150,9 +153,9 @@ class QdrantDatastore(DataStore):
                     self.qdrant_client.upsert(collection_name=self.collection_name, points=points)
                     return True
                 except Exception as e:
-                    print(f"❌ Batch {batch_index} attempt {attempt} failed: {e}")
+                    logger.warning(f"Batch {batch_index} attempt {attempt} failed: {e}")
                     time.sleep(5)
-            print(f"❌ Batch {batch_index} failed after {max_retries} attempts.")
+            logger.error(f"Batch {batch_index} failed after {max_retries} attempts.")
             return False
 
         successes = 0
@@ -168,7 +171,7 @@ class QdrantDatastore(DataStore):
                         successes += 1
                     pbar.update(1)
 
-        print(f"✅ Indexed {successes}/{len(batches)} batches of new embeddings")
+        logger.info(f"Indexed {successes}/{len(batches)} batches of new embeddings")
     
 
     def retrieve(self, query: str, top_k: int = 10):
